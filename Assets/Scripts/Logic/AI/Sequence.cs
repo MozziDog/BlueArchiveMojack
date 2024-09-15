@@ -37,7 +37,11 @@ namespace AI
                 if (childResult == BehaviorResult.Success)
                     continue;
                 else
+                {
+                    if(childResult == BehaviorResult.Failure)
+                        curChildIdx = 0;
                     return childResult;
+                }
             }
             return BehaviorResult.Success;  // ±âº»°ª Success
         }

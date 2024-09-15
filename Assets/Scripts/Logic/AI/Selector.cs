@@ -6,7 +6,7 @@ namespace AI
 {
     public class Selector : BehaviorNode
     {
-        private List<BehaviorNode> _behaviors;
+        private List<BehaviorNode> _behaviors = new List<BehaviorNode>();
 
         public Selector(params BehaviorNode[] behaviors)
         {
