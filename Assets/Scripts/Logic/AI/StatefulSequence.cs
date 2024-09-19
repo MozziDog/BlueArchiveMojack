@@ -5,11 +5,12 @@ using UnityEngine;
 
 namespace AI
 {
-    public class Sequence : BehaviorNode
+    public class StatefulSequence : BehaviorNode
     {
         private List<BehaviorNode> _behaviors = new List<BehaviorNode>();
+        private int curChildIdx = 0;        // 마지막으로 수행한 child 번호 기억
 
-        public Sequence(params BehaviorNode[] behaviors)
+        public StatefulSequence(params BehaviorNode[] behaviors)
         {
             for (int i = 0; i < behaviors.Length; i++)
             {
@@ -25,14 +26,22 @@ namespace AI
         public override BehaviorResult Behave()
         {
             if (_behaviors == null || _behaviors.Count == 0) { return BehaviorResult.Failure; }
-
-            for (int i = 0; i < _behaviors.Count; i++)
+            if(curChildIdx >= _behaviors.Count)
             {
-                BehaviorResult childResult = _behaviors[i].Behave();
+                curChildIdx = 0;
+            }
+
+            for (; curChildIdx < _behaviors.Count; curChildIdx++)
+            {
+                BehaviorResult childResult = _behaviors[curChildIdx].Behave();
                 if (childResult == BehaviorResult.Success)
                     continue;
                 else
+                {
+                    if(childResult == BehaviorResult.Failure)
+                        curChildIdx = 0;
                     return childResult;
+                }
             }
             return BehaviorResult.Success;  // 기본값 Success
         }
