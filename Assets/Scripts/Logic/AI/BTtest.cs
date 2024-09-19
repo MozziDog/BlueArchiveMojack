@@ -12,21 +12,21 @@ public class BTtest : MonoBehaviour
     public GameObject character;
     public GameObject enemy;
 
-    [Title("³²Àº Àû ¼ö")]
+    [Title("ë‚¨ì€ ì  ìˆ˜")]
     public int leftEnemy = 10;
 
-    [Title("ÀÏ¹Ý ½ºÅ³ °ü·Ã")]
+    [Title("ì¼ë°˜ ìŠ¤í‚¬ ê´€ë ¨")]
     public bool normalSkillReady;
-    public bool usingSomeSkill;     // ½ºÅ³ »ç¿ë Áß ÀÌµ¿ ÁßÁö Å×½ºÆ®¿ë
+    public bool usingSomeSkill;     // ìŠ¤í‚¬ ì‚¬ìš© ì¤‘ ì´ë™ ì¤‘ì§€ í…ŒìŠ¤íŠ¸ìš©
 
-    [Title("¾öÆó °ü·Ã")]
+    [Title("ì—„í ê´€ë ¨")]
     public bool isDoingCover = false;
     public float distToCover = 10f;
 
-    [Title("ÈÄÅð °ü·Ã")]
+    [Title("í›„í‡´ ê´€ë ¨")]
     public int recentHit = 0;
 
-    [Title("±³Àü °ü·Ã")]
+    [Title("êµì „ ê´€ë ¨")]
     public float distToEnemy = 10f;
     public GameObject currentEnemy;
     public float attackRange = 7f;
@@ -35,34 +35,40 @@ public class BTtest : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // ´ÙÀ½ ¿þÀÌºê ½ºÆù±îÁö ±â´Ù¸®±â
-        Conditional isNoEnemy = new Conditional(() => { return leftEnemy <= 0; });
-        BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
+        // ë‹¤ìŒ ì›¨ì´ë¸Œ ìŠ¤í°ê¹Œì§€ ê¸°ë‹¤ë¦¬ê¸°
+            Conditional isNoEnemy = new Conditional(() => { return leftEnemy <= 0; });
+            BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
         BehaviorNode waitUntilEnemySpawn = new DecoratorInverter(new Sequence(isNoEnemy, waitEnemySpawn));
 
-        // ´ÙÀ½ ¿þÀÌºê±îÁö ÀÌµ¿
-        BehaviorAction waitSkillDone = new BehaviorAction(WaitSkillDone);
-        BehaviorAction moveToEnemyWave = new BehaviorAction(MoveToNextWave);
+        // ë‹¤ìŒ ì›¨ì´ë¸Œê¹Œì§€ ì´ë™
+            BehaviorAction waitSkillDone = new BehaviorAction(WaitSkillDone);
+            BehaviorAction moveToEnemyWave = new BehaviorAction(MoveToNextWave);
         Sequence moveToNextWave = new Sequence(waitSkillDone, moveToEnemyWave);
 
-        // ±âº» ½ºÅ³
-        Conditional canUseNormalSkill = new Conditional(() => { return normalSkillReady; });
-        BehaviorAction useNormalSkill = new BehaviorAction(UseNormalSkill);
-        BehaviorNode checkAndUseNormalSkill = new Sequence(canUseNormalSkill, useNormalSkill);
+        // êµì „
+            // ê¸°ë³¸ ìŠ¤í‚¬
+                Conditional canUseNormalSkill = new Conditional(() => { return normalSkillReady; });
+                BehaviorAction useNormalSkill = new BehaviorAction(UseNormalSkill);
+            BehaviorNode checkAndUseNormalSkill = new Sequence(canUseNormalSkill, useNormalSkill);
 
-        // ±³Àü °³½Ã
-        BehaviorAction findEnemy = new BehaviorAction(FindNextEnemy);
-        BehaviorAction move = new BehaviorAction(Move);
-        BehaviorAction coverUp = new BehaviorAction(TryCoverUp);
-        BehaviorAction pullBack = new BehaviorAction(PullBack);
-        BehaviorAction reload = new BehaviorAction(Reload);
-        BehaviorAction attack = new BehaviorAction(Attack);
-        Sequence basicCombat = new Sequence(findEnemy, move, coverUp, pullBack, reload, attack);
+            // ì´ë™
+            BehaviorAction move = new BehaviorAction(Move);
 
-        // ±âº» ½ºÅ³ + ±âº» ±³Àü
-        Selector combat = new Selector(checkAndUseNormalSkill, basicCombat);
+            // ìž¬ìž¥ì „
+                Conditional needToReload = new Conditional(() => { return bulletInMagazine <= 0; });
+                BehaviorAction doReload = new BehaviorAction(Reload);
+            BehaviorNode reload = new Sequence(needToReload, doReload);
 
-        // ·çÆ®
+
+            // êµì „ ê°œì‹œ
+                Conditional isEnemyCloseEnough = new Conditional(() => { return distToEnemy < attackRange; });
+                Conditional isNotHitEnough = new Conditional(()=> { return recentHit < 20; });
+                Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return bulletInMagazine > 0; });
+                BehaviorAction attack = new BehaviorAction(Attack);
+            Sequence basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
+        Selector combat = new Selector(checkAndUseNormalSkill, move, reload, basicAttack);
+
+        // ë£¨íŠ¸
         bt = new BehaviorTree();
         bt.Root = new Sequence(waitUntilEnemySpawn, moveToNextWave, combat);
     }
@@ -79,10 +85,10 @@ public class BTtest : MonoBehaviour
 
     BehaviorResult WaitEnemySpawn()
     {
-        // ÀûÀÌ ½ºÆùµÉ ¶§±îÁö ÃÖ´ë nÃÊ ´ë±âÇÏ±â
+        // ì ì´ ìŠ¤í°ë  ë•Œê¹Œì§€ ìµœëŒ€ nì´ˆ ëŒ€ê¸°í•˜ê¸°
         if(enemy == null || !enemy.activeSelf)
         {
-            Debug.Log("Àû ½ºÆù ´ë±âÁß");
+            Debug.Log("ì  ìŠ¤í° ëŒ€ê¸°ì¤‘");
             return BehaviorResult.Running;
         }
         else
@@ -105,7 +111,7 @@ public class BTtest : MonoBehaviour
     {
         if (usingSomeSkill)
         {
-            Debug.Log("½ºÅ³ Á¾·á ´ë±âÁß");
+            Debug.Log("ìŠ¤í‚¬ ì¢…ë£Œ ëŒ€ê¸°ì¤‘");
             return BehaviorResult.Running;
         }
         else return BehaviorResult.Success;
@@ -134,38 +140,27 @@ public class BTtest : MonoBehaviour
         {
             if(distToCover > 0.1f)
             {
-                Debug.Log("¾öÆó¹°·Î ÀÌµ¿");
+                Debug.Log("ì—„íë¬¼ë¡œ ì´ë™");
                 return BehaviorResult.Running;
             }
             else
             {
-                Debug.Log("¾öÆó ¼º°ø");
+                Debug.Log("ì—„í ì„±ê³µ");
                 return BehaviorResult.Success;
             }
         }
     }
 
-    BehaviorResult PullBack()
-    {
-        if (recentHit > 10)
-        {
-            Debug.Log("ÈÄÅð");
-            return BehaviorResult.Success;
-        }
-        else
-            return BehaviorResult.Success;
-    }
-
     BehaviorResult Reload()
     {
-        Debug.Log("ÀçÀåÀü");
+        Debug.Log("ìž¬ìž¥ì „");
         bulletInMagazine = 15;
         return BehaviorResult.Success;
     }
 
     BehaviorResult UseNormalSkill()
     {
-        Debug.Log("±âº» ½ºÅ³ »ç¿ë");
+        Debug.Log("ê¸°ë³¸ ìŠ¤í‚¬ ì‚¬ìš©");
         normalSkillReady = false;
         return BehaviorResult.Success;
     }
@@ -182,15 +177,5 @@ public class BTtest : MonoBehaviour
         Debug.Log("Attack");
         bulletInMagazine -= 1;
         return BehaviorResult.Running;
-    }
-
-    BehaviorResult FindNextEnemy()
-    {
-        if(currentEnemy == null || !currentEnemy.activeSelf)
-        {
-            Debug.Log("Find Next Enemy");
-            currentEnemy = enemy;
-        }
-        return BehaviorResult.Success;
     }
 }
