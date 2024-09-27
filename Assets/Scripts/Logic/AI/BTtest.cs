@@ -50,14 +50,16 @@ public class BTtest : MonoBehaviour
                 Conditional canUseNormalSkill = new Conditional(() => { return normalSkillReady; });
                 BehaviorAction useNormalSkill = new BehaviorAction(UseNormalSkill);
             BehaviorNode checkAndUseNormalSkill = new Sequence(canUseNormalSkill, useNormalSkill);
+            BehaviorNode subTree_NormalSkill = new DecoratorInverter(checkAndUseNormalSkill);
 
             // 이동
-            BehaviorAction move = new BehaviorAction(Move);
+                BehaviorAction move = new BehaviorAction(Move);
 
             // 재장전
                 Conditional needToReload = new Conditional(() => { return bulletInMagazine <= 0; });
                 BehaviorAction doReload = new BehaviorAction(Reload);
             BehaviorNode reload = new Sequence(needToReload, doReload);
+            BehaviorNode subTree_Reload = new DecoratorInverter(reload);
 
 
             // 교전 개시
@@ -66,7 +68,7 @@ public class BTtest : MonoBehaviour
                 Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return bulletInMagazine > 0; });
                 BehaviorAction attack = new BehaviorAction(Attack);
             Sequence basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
-        Selector combat = new Selector(checkAndUseNormalSkill, move, reload, basicAttack);
+        StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, move, subTree_Reload, basicAttack);
 
         // 루트
         bt = new BehaviorTree();
@@ -126,28 +128,6 @@ public class BTtest : MonoBehaviour
             character.GetComponent<NavMeshAgent>().SetDestination(enemy.transform.position);
             Debug.Log("Move to next wave");
             return BehaviorResult.Running;
-        }
-    }
-
-    BehaviorResult TryCoverUp()
-    {
-        if (isDoingCover)
-            return BehaviorResult.Success;
-
-        if (distToCover > 5.0f)
-            return BehaviorResult.Success;
-        else
-        {
-            if(distToCover > 0.1f)
-            {
-                Debug.Log("엄폐물로 이동");
-                return BehaviorResult.Running;
-            }
-            else
-            {
-                Debug.Log("엄폐 성공");
-                return BehaviorResult.Success;
-            }
         }
     }
 
