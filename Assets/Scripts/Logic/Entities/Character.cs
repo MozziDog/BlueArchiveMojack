@@ -5,8 +5,10 @@ using AI;
 using Sirenix.OdinInspector;
 using UnityEditor.Search;
 using UnityEngine.AI;
+using System;
 
-public class BTtest : MonoBehaviour
+[Serializable]
+public class Character
 {
     BehaviorTree bt;
     public GameObject character;
@@ -32,8 +34,18 @@ public class BTtest : MonoBehaviour
     public float attackRange = 7f;
     public int bulletInMagazine = 15;
 
-    // Start is called before the first frame update
-    void Start()
+    public Character()
+    {
+        Debug.Log("new Character instance");
+        bt = BuildBehaviorTree();
+    }
+
+    public void Init()
+    {
+        // TODO: 필요하면 초기화 추가하기.
+    }
+
+    protected BehaviorTree BuildBehaviorTree()
     {
         // 다음 웨이브 스폰까지 기다리기
             Conditional isNoEnemy = new Conditional(() => { return leftEnemy <= 0; });
@@ -71,12 +83,13 @@ public class BTtest : MonoBehaviour
         StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, move, subTree_Reload, basicAttack);
 
         // 루트
-        bt = new BehaviorTree();
-        bt.Root = new Sequence(waitUntilEnemySpawn, moveToNextWave, combat);
+        BehaviorTree tree = new BehaviorTree();
+        tree.Root = new Sequence(waitUntilEnemySpawn, moveToNextWave, combat);
+        return tree;
     }
 
     // Update is called once per frame
-    void Update()
+    public void Tick()
     {
         bt.Behave();
         if (enemy.activeSelf)
