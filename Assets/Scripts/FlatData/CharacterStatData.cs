@@ -8,15 +8,15 @@ public class CharacterStatData : ScriptableObject       // 임시로 ScriptableO
 {
     public int Id;
 
-    // 레벨에 따른 성장 수치. 성장 곡선은 선형으로 가정
-    public int HPbase;                          // 체력
-    public int HPgrowth;
-    public int AttackPowerBase;                 // 공격력
-    public int AttackPowerGrowth;
-    public int DefensePowerBase;                // 방어력
-    public int DefensePowerGrowth;
-    public int HealPowerBase;                   // 치유력
-    public int HealPowerGrowth;
+    // 레벨에 따른 성장 수치. 성장 곡선은 선형
+    public int HPLevel1;                          // 체력
+    public int HPLevel100;
+    public int AttackPowerLevel1;                 // 공격력
+    public int AttackPowerLevel100;
+    public int DefensePowerLevel1;                // 방어력
+    public int DefensePowerLevel100;
+    public int HealPowerLevel1;                   // 치유력
+    public int HealPowerLevel100;
 
     // 레벨 이외의 성장 수치
     public int DodgePower;                      // 회피율

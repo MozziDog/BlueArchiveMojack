@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 903d9ea6877fc0e41bcc5ed944f27119, type: 3}
+  m_Name: Shiroko_StatData
+  m_EditorClassIdentifier: 
+  Id: 1
+  HPLevel1: 2492
+  HPLevel100: 24932
+  AttackPowerLevel1: 340
+  AttackPowerLevel100: 3402
+  DefensePowerLevel1: 19
+  DefensePowerLevel100: 118
+  HealPowerLevel1: 1662
+  HealPowerLevel100: 4987
+  DodgePower: 808
+  AccuracyPower: 707
+  CriticalPower: 202
+  CriticalResistPower: 100
+  CriticalDamageRate: 200
+  CriticalDamageResistRate: 50
+  BlockRate: 0
+  HealEffectiveness: 0
+  EnhanceExplosiveRate: 0
+  EnhancePiercingRate: 0
+  EnhanceMysticRate: 0
+  EnhanceSonicRate: 0
+  BuffExtendRate: 0
+  CrowdControlExtendRate: 0
+  CrowdControlResistRate: 0
+  AmmoCount: 0
+  NormalAttackSpeed: 0
+  NormalAttackRange: 0
+  InitialRangeRate: 8800
+  MoveSpeed: 200
+  SightRange: 0
+  CostRegen: 700
+  Stability: 1384
+  StreetAdaptation: 0
+  OutdoorAdaptation: 0
+  IndoorAdaptation: 0
+  DefensePenetration: 0

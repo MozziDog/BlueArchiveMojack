@@ -8,14 +8,21 @@ using UnityEngine.AI;
 using System;
 
 [Serializable]
-public class Character
+public class Character : MonoBehaviour
 {
-    BehaviorTree bt;
-    public GameObject character;
-    public GameObject enemy;
+    BattleSceneManager battleSceneManager;
 
-    [Title("남은 적 수")]
-    public int leftEnemy = 10;
+    BehaviorTree bt;
+
+    public bool isAlive = true;
+    [Title("기본 정보")]
+    public int maxHP;
+    public int currentHP;
+    public int attackPower;
+    public int defensePower;
+    public int healPower;
+    public float moveSpeed;
+    public float obstacleJumpSpeed;
 
     [Title("일반 스킬 관련")]
     public bool normalSkillReady;
@@ -25,30 +32,41 @@ public class Character
     public bool isDoingCover = false;
     public float distToCover = 10f;
 
-    [Title("후퇴 관련")]
-    public int recentHit = 0;
-
     [Title("교전 관련")]
+    public int recentHit = 0;
     public float distToEnemy = 10f;
-    public GameObject currentEnemy;
+    public Character currentTarget;
+    public float sightRange = 13f;
     public float attackRange = 7f;
-    public int bulletInMagazine = 15;
+    public int maxAmmo = 15;
+    public int currentAmmo;
 
-    public Character()
+    [Title("프레임 관련 정보")]
+    public int moveFrame;
+    public int attackFrame;
+    public int reloadFrame;
+
+    [Title("플래그")]
+    public bool isObstacleJumping;
+
+    public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData)
     {
-        Debug.Log("new Character instance");
+        battleSceneManager = battle;
         bt = BuildBehaviorTree();
-    }
 
-    public void Init()
-    {
-        // TODO: 필요하면 초기화 추가하기.
+        // 필드 초기화
+        attackPower = statData.AttackPowerLevel1;
+        defensePower = statData.DefensePowerLevel1;
+        healPower = statData.HealPowerLevel1;
+
+        currentAmmo = maxAmmo;
+        currentHP = maxHP;
     }
 
     protected BehaviorTree BuildBehaviorTree()
     {
         // 다음 웨이브 스폰까지 기다리기
-            Conditional isNoEnemy = new Conditional(() => { return leftEnemy <= 0; });
+            Conditional isNoEnemy = new Conditional(() => { return battleSceneManager.activeEnemies.Count <= 0; });
             BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
         BehaviorNode waitUntilEnemySpawn = new DecoratorInverter(new Sequence(isNoEnemy, waitEnemySpawn));
 
@@ -68,7 +86,7 @@ public class Character
                 BehaviorAction move = new BehaviorAction(Move);
 
             // 재장전
-                Conditional needToReload = new Conditional(() => { return bulletInMagazine <= 0; });
+                Conditional needToReload = new Conditional(() => { return currentAmmo <= 0; });
                 BehaviorAction doReload = new BehaviorAction(Reload);
             BehaviorNode reload = new Sequence(needToReload, doReload);
             BehaviorNode subTree_Reload = new DecoratorInverter(reload);
@@ -77,7 +95,7 @@ public class Character
             // 교전 개시
                 Conditional isEnemyCloseEnough = new Conditional(() => { return distToEnemy < attackRange; });
                 Conditional isNotHitEnough = new Conditional(()=> { return recentHit < 20; });
-                Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return bulletInMagazine > 0; });
+                Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return currentAmmo > 0; });
                 BehaviorAction attack = new BehaviorAction(Attack);
             Sequence basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
         StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, move, subTree_Reload, basicAttack);
@@ -91,17 +109,39 @@ public class Character
     // Update is called once per frame
     public void Tick()
     {
+        if(currentTarget == null || !currentTarget.isAlive)
+        {
+            FindNextEnemy();
+        }
         bt.Behave();
-        if (enemy.activeSelf)
-            leftEnemy = 1;
-        else
-            leftEnemy = 0;
+    }
+
+    public void FindNextEnemy()
+    {
+        float minDist = float.MaxValue;
+        foreach(var enemy in battleSceneManager.activeEnemies)
+        {
+            if(currentTarget == null || !currentTarget.isAlive)
+            {
+                currentTarget = enemy;
+            }
+            float dist = (enemy.transform.position - transform.position).magnitude;
+            if (dist > sightRange)
+            {
+                continue;
+            }
+            if (minDist > dist)
+            {
+                minDist = dist;
+                currentTarget = enemy;
+            }
+        }
     }
 
     BehaviorResult WaitEnemySpawn()
     {
         // 적이 스폰될 때까지 최대 n초 대기하기
-        if(enemy == null || !enemy.activeSelf)
+        if(currentTarget == null || currentTarget.isAlive)
         {
             Debug.Log("적 스폰 대기중");
             return BehaviorResult.Running;
@@ -112,11 +152,24 @@ public class Character
 
     BehaviorResult Move()
     {
-        distToEnemy = (character.transform.position - enemy.transform.position).magnitude;
-        if (distToEnemy < attackRange) return BehaviorResult.Success;
+        distToEnemy = (transform.position - currentTarget.transform.position).magnitude;
+        if (distToEnemy < attackRange && !isObstacleJumping) return BehaviorResult.Success;
         else
         {
-            character.GetComponent<NavMeshAgent>().SetDestination(enemy.transform.position);
+            NavMeshAgent pathFinder = GetComponent<NavMeshAgent>();
+            pathFinder.SetDestination(currentTarget.transform.position);
+            if(pathFinder.isOnOffMeshLink)      // 장애물 뛰어넘기
+            {
+                isObstacleJumping = true;
+                OffMeshLinkData obstacleJump = pathFinder.currentOffMeshLinkData;
+                Vector3 yFloat = Vector3.up * transform.position.y;
+                transform.position = Vector3.MoveTowards(transform.position, obstacleJump.endPos + yFloat, obstacleJumpSpeed / battleSceneManager.logicTickPerSecond);
+                if((transform.position - (obstacleJump.endPos + yFloat)).magnitude < 0.1f)
+                {
+                    isObstacleJumping = false;
+                    pathFinder.CompleteOffMeshLink();
+                }
+            }
             Debug.Log("Move");
             return BehaviorResult.Running;
         }
@@ -134,11 +187,10 @@ public class Character
 
     BehaviorResult MoveToNextWave()
     {
-        distToEnemy = (character.transform.position - enemy.transform.position).magnitude;
-        if (distToEnemy < attackRange) return BehaviorResult.Success;
+        if (currentTarget != null) return BehaviorResult.Success;
         else
         {
-            character.GetComponent<NavMeshAgent>().SetDestination(enemy.transform.position);
+            GetComponent<NavMeshAgent>().SetDestination(transform.position + Vector3.forward * 3);
             Debug.Log("Move to next wave");
             return BehaviorResult.Running;
         }
@@ -146,9 +198,15 @@ public class Character
 
     BehaviorResult Reload()
     {
-        Debug.Log("재장전");
-        bulletInMagazine = 15;
-        return BehaviorResult.Success;
+        moveFrame++;
+        if(moveFrame >= reloadFrame)
+        {
+            moveFrame = 0;
+            currentAmmo = 15;
+            Debug.Log("재장전");
+            return BehaviorResult.Success;
+        }
+        return BehaviorResult.Running;
     }
 
     BehaviorResult UseNormalSkill()
@@ -160,15 +218,41 @@ public class Character
 
     BehaviorResult Attack()
     {
-        if (!enemy.activeSelf) return BehaviorResult.Success;
-        if (distToEnemy > attackRange ) return BehaviorResult.Failure;
-        if (bulletInMagazine <= 0)
+        if (currentTarget == null || !currentTarget.isAlive)
         {
+            moveFrame = 0;
+            return BehaviorResult.Success;
+        }
+        if (distToEnemy > attackRange || currentAmmo <= 0)
+        {
+            moveFrame = 0;
             return BehaviorResult.Failure;
         }
-
-        Debug.Log("Attack");
-        bulletInMagazine -= 1;
+        moveFrame++;
+        if(moveFrame >= attackFrame)
+        {
+            Debug.Log("Attack");
+            currentTarget.TakeDamage(attackPower);
+            currentAmmo -= 1;
+            moveFrame = 0;
+        }
         return BehaviorResult.Running;
+    }
+
+    public void TakeDamage(int dmg)
+    {
+        // TODO: 공격 계산식 수정하기
+        currentHP -= (dmg - defensePower);
+        if(currentHP <= 0)
+        {
+            isAlive = false;
+            // TODO: 후퇴 연출 필요
+        }
+    }
+
+    public void TakeHeal(int heal)
+    {
+        currentHP += heal;
+        if(currentHP > maxHP) currentHP = maxHP;
     }
 }
