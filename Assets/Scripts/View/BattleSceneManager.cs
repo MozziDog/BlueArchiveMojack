@@ -5,15 +5,15 @@ using Sirenix.OdinInspector;
 
 public class BattleSceneManager : MonoBehaviour
 {
+    public CharacterPrefabDatabase characterViewDatabase;
+
     public BattleData battleData;
     public BattleSceneState battleState;
     public int logicTickPerSecond = 30;
 
-    // 디버그용
-    [SerializeField] Battle battle;
-
-    [Title("Debug")]
-    public GameObject characterView;
+    [ReadOnly] public List<Character> activeCharacters;      // 아군
+    
+    public List<Character> activeEnemies;          // 적군
 
     // Start is called before the first frame update
     void Start()
@@ -30,14 +30,34 @@ public class BattleSceneManager : MonoBehaviour
 
     protected IEnumerator GameCoroutine(BattleData battleData)
     {
-        battle = new Battle(battleData);
-        // 디버그용
-        characterView.GetComponent<CharacterView>().character = battle.characters[0];
-        // 디버그용 끝
+        // battleData에 기록된 캐릭터들을 스폰
+        // 아군
+        for(int i=0; i<battleData.characters.Count; i++)
+        {
+            GameObject instance = Instantiate(characterViewDatabase.CharacterViews[battleData.characters[i].Name]);
+            Character characterComponent = instance.GetComponent<Character>();
+            characterComponent.Init(this, battleData.characters[i], battleData.characterStats[i]);
+            activeCharacters.Add(characterComponent);
+        }
+
+        // 게임루프 수행
         while(battleState == BattleSceneState.InBattle)
         {
-            battle.tick();
+            if(activeCharacters.Count <= 0)
+            {
+                Debug.Log("게임 오버");
+                yield break;
+            }
+            Tick();
             yield return new WaitForSeconds(1f / logicTickPerSecond);
+        }
+    }
+
+    protected void Tick()
+    {
+        foreach(var ch in activeCharacters)
+        {
+            ch.Tick();
         }
     }
 
