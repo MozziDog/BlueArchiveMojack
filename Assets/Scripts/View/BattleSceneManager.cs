@@ -12,8 +12,8 @@ public class BattleSceneManager : MonoBehaviour
     public int logicTickPerSecond = 30;
 
     [ReadOnly] public List<Character> activeCharacters;      // 아군
-    
     public List<Character> activeEnemies;          // 적군
+    public List<Obstacle> obstacles;
 
     // Start is called before the first frame update
     void Start()
