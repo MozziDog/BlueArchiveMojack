@@ -144,15 +144,20 @@ MonoBehaviour:
   obstacleJumpSpeed: 3
   normalSkillReady: 0
   usingSomeSkill: 0
+  coveringObstacle: {fileID: 0}
   isDoingCover: 0
   distToCover: 0
+  moveDest: {x: 0, y: 0, z: 0}
+  destObstacle: {fileID: 0}
+  positioningAttackRangeRatio: 0.88
   recentHit: 0
   distToEnemy: 1
   currentTarget: {fileID: 0}
   sightRange: 13
-  attackRange: 7
+  attackRange: 13
   maxAmmo: 15
   currentAmmo: 0
   moveFrame: 0
   attackFrame: 17
   reloadFrame: 40
+  isObstacleJumping: 0

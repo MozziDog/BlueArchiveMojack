@@ -33,6 +33,7 @@ public class Character : MonoBehaviour
     public Obstacle coveringObstacle;       // 현재 엄폐를 수행중인 엄폐물
     public bool isDoingCover = false;
     public float distToCover = 10f;
+    private OffMeshLinkData obstacleJump;           // 현재 뛰어넘는 중인 장애물
 
     [Title("이동 관련")]
     public Vector3 moveDest;
@@ -234,7 +235,7 @@ public class Character : MonoBehaviour
             if(destObstacle.isOccupied)
             return BehaviorResult.Failure;
         }
-        // 엄폐물이 아닌 적을 향해 이동중인 경우 사거리 체크 수행
+        // 엄폐물이 아닌 바로 적을 향해 이동중인 경우 사거리 체크 수행
         else
         {
             distToEnemy = (transform.position - currentTarget.transform.position).magnitude;
@@ -244,10 +245,10 @@ public class Character : MonoBehaviour
         }
 
         // NavMeshAgent로 이동 수행
-        NavMeshAgent pathFinder = GetComponent<NavMeshAgent>();
-        pathFinder.SetDestination(currentTarget.transform.position);
-        // 이동 속도 조절을 위해 장애물 뛰어넘기는 수동으로 진행
-        if(pathFinder.isOnOffMeshLink )
+        NavMeshAgent naviAgent = GetComponent<NavMeshAgent>();
+        naviAgent.SetDestination(currentTarget.transform.position);
+        // 엄폐물에 도달했을 때, 엄폐할지 뛰어넘을지 판단
+        if(naviAgent.isOnOffMeshLink)
         {
             // offmeshLink startPoint가 목표 지점일 경우
             // == 마주한 장애물이 '엄폐물'일 경우, 뛰어넘기 스킵
@@ -260,15 +261,27 @@ public class Character : MonoBehaviour
                 coveringObstacle.isOccupied = true;
                 return BehaviorResult.Success;
             }
-
-            isObstacleJumping = true;
-            OffMeshLinkData obstacleJump = pathFinder.currentOffMeshLinkData;
+            else
+            {
+                // 엄폐물 뛰어넘기 시작
+                // 뛰어넘는 중에는 다른 캐릭터가 엄폐물 뒤에서 기다리는 상황을 방지하기 위해
+                // OffMeshLink 비활성화
+                isObstacleJumping = true;
+                obstacleJump = naviAgent.currentOffMeshLinkData;
+                obstacleJump.offMeshLink.activated = false;
+            }
+            
+        }
+        // 이동 속도 조절을 위해 장애물 뛰어넘기는 수동으로 진행
+        if (isObstacleJumping)
+        {
             Vector3 yFloat = Vector3.up * transform.position.y;
             transform.position = Vector3.MoveTowards(transform.position, obstacleJump.endPos + yFloat, obstacleJumpSpeed / battleSceneManager.logicTickPerSecond);
-            if((transform.position - (obstacleJump.endPos + yFloat)).magnitude < 0.1f)
+            if ((transform.position - (obstacleJump.endPos + yFloat)).magnitude < 0.1f)
             {
                 isObstacleJumping = false;
-                pathFinder.CompleteOffMeshLink();
+                obstacleJump.offMeshLink.activated = true;
+                naviAgent.CompleteOffMeshLink();
             }
         }
         Debug.Log($"Move, distToDest: {Vector3.Distance(transform.position, moveDest)}");
@@ -354,5 +367,20 @@ public class Character : MonoBehaviour
     {
         currentHP += heal;
         if(currentHP > maxHP) currentHP = maxHP;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // 사거리 원
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+
+        // 이동 목표 위치
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(moveDest, 0.1f);
+
+        // 공격 대상
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(currentTarget.transform.position, 0.1f);
     }
 }
