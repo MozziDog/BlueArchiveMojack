@@ -11,6 +11,8 @@ public class BattleSceneManager : MonoBehaviour
     public BattleSceneState battleState;
     public int logicTickPerSecond = 30;
 
+    public List<Transform> spawnPoint;
+
     [ReadOnly] public List<Character> activeCharacters;      // 아군
     public List<Character> activeEnemies;          // 적군
     public List<Obstacle> obstacles;
@@ -35,6 +37,7 @@ public class BattleSceneManager : MonoBehaviour
         for(int i=0; i<battleData.characters.Count; i++)
         {
             GameObject instance = Instantiate(characterViewDatabase.CharacterViews[battleData.characters[i].Name]);
+            instance.transform.position = spawnPoint[i].position;
             Character characterComponent = instance.GetComponent<Character>();
             characterComponent.Init(this, battleData.characters[i], battleData.characterStats[i]);
             activeCharacters.Add(characterComponent);
