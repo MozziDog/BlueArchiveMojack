@@ -6,13 +6,12 @@ using Sirenix.OdinInspector;
 using UnityEditor.Search;
 using UnityEngine.AI;
 using System;
-using VHierarchy.Libs;
 
 [Serializable]
 public class Character : MonoBehaviour
 {
     BattleSceneManager battleSceneManager;
-
+    NavMeshAgent naviAgent;
     BehaviorTree bt;
 
     public bool isAlive = true;
@@ -33,9 +32,11 @@ public class Character : MonoBehaviour
     public Obstacle coveringObstacle;       // 현재 엄폐를 수행중인 엄폐물
     public bool isDoingCover = false;
     public float distToCover = 10f;
-    private OffMeshLinkData obstacleJump;           // 현재 뛰어넘는 중인 장애물
+    private Obstacle occupyinngObstacle;           // 현재 점유 중인 장애물
 
     [Title("이동 관련")]
+    public int moveStartFrame = 0;
+    public int moveEndFrame = 13;
     public Vector3 moveDest;
     public Obstacle destObstacle;
     public float positioningAttackRangeRatio = 0.88f;       // 이동 위치 선정할 때 최대 사거리 대신 사거리에 이 값을 곱해서 사용
@@ -60,6 +61,7 @@ public class Character : MonoBehaviour
     public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData)
     {
         battleSceneManager = battle;
+        naviAgent = GetComponent<NavMeshAgent>();
         bt = BuildBehaviorTree();
 
         // 필드 초기화
@@ -92,8 +94,10 @@ public class Character : MonoBehaviour
 
             // 이동
                 BehaviorAction getNextDest = new BehaviorAction(GetNextDest);
-                BehaviorAction move = new BehaviorAction(Move);
-            BehaviorNode subTree_Move = new StatefulSequence(getNextDest, move);
+                BehaviorAction moveStart = new BehaviorAction(MoveStart);
+                BehaviorAction moveIng = new BehaviorAction(MoveIng);
+                BehaviorAction moveEnd = new BehaviorAction(MoveEnd);
+            BehaviorNode subTree_Move = new StatefulSequence(getNextDest, moveStart, moveIng, moveEnd);
 
             // 재장전
                 Conditional needToReload = new Conditional(() => { return currentAmmo <= 0; });
@@ -227,64 +231,95 @@ public class Character : MonoBehaviour
         return BehaviorResult.Success;
     }
 
-    BehaviorResult Move()
+    BehaviorResult MoveStart()
     {
-        // 엄폐물로 이동중인 경우, 해당 엄폐물이 '점유'되었는지 체크
-        if(destObstacle != null)
+        moveFrame++;
+        if(moveFrame >= moveStartFrame)
         {
-            if(destObstacle.isOccupied)
-            return BehaviorResult.Failure;
+            moveFrame = 0;
+            // 점유중인 엄폐물이 있었다면 점유 해제
+            if(coveringObstacle != null)
+            {
+                coveringObstacle.isOccupied = false;
+                coveringObstacle = null;
+            }
+            Debug.Log("MoveStart");
+            return BehaviorResult.Success;
         }
-        // 엄폐물이 아닌 바로 적을 향해 이동중인 경우 사거리 체크 수행
-        else
+        return BehaviorResult.Running;
+    }
+
+    BehaviorResult MoveIng()
+    {
+        // MoveIng 종료 조건 판단
+        if(!isObstacleJumping)
         {
             distToEnemy = (transform.position - currentTarget.transform.position).magnitude;
-            // 장애물 극복 중에는 사거리체크 무시
-            if (distToEnemy < attackRange * positioningAttackRangeRatio && !isObstacleJumping)
+            // 엄폐물로 이동중인 경우, 해당 엄폐물이 다른 캐릭터에 의해 '점유'되었는지 체크
+            if(destObstacle != null)
+            {
+                if(destObstacle.isOccupied)
+                {
+                    Debug.Log("엄폐물 선점당함. 경로 재탐색");
+                    return BehaviorResult.Failure;
+                }
+                if(Vector3.Distance(transform.position, moveDest) < 0.1f)
+                {
+                    Debug.Log("목표 엄폐물에 도달, 엄폐 수행. 이동 종료");
+                    destObstacle.isOccupied = true;
+                    coveringObstacle = destObstacle;
+                    return BehaviorResult.Success;
+                }
+            }
+            // 엄폐물이 아닌 바로 적을 향해 이동중인 경우 사거리 체크 수행
+            else if(distToEnemy < (attackRange * positioningAttackRangeRatio))
+            {
+                Debug.Log("공격 대상과 사거리 이내로 가까워짐. 이동 종료");
                 return BehaviorResult.Success;
+            }
         }
 
-        // NavMeshAgent로 이동 수행
-        NavMeshAgent naviAgent = GetComponent<NavMeshAgent>();
-        naviAgent.SetDestination(currentTarget.transform.position);
-        // 엄폐물에 도달했을 때, 엄폐할지 뛰어넘을지 판단
-        if(naviAgent.isOnOffMeshLink)
+        // 엄폐물 뛰어넘기 조건
+        if(!isObstacleJumping && naviAgent.isOnOffMeshLink)
         {
-            // offmeshLink startPoint가 목표 지점일 경우
-            // == 마주한 장애물이 '엄폐물'일 경우, 뛰어넘기 스킵
-            Vector3 characterPosition = transform.position;
-            characterPosition.y = 0;
-            if(Vector3.Distance(characterPosition, moveDest) < 0.1f)
-            {
-                // 엄폐물 '점유'
-                coveringObstacle = destObstacle;
-                coveringObstacle.isOccupied = true;
-                return BehaviorResult.Success;
-            }
-            else
-            {
-                // 엄폐물 뛰어넘기 시작
-                // 뛰어넘는 중에는 다른 캐릭터가 엄폐물 뒤에서 기다리는 상황을 방지하기 위해
-                // OffMeshLink 비활성화
-                isObstacleJumping = true;
-                obstacleJump = naviAgent.currentOffMeshLinkData;
-                obstacleJump.offMeshLink.activated = false;
-            }
-            
+            isObstacleJumping = true;
+            // 뛰어넘는 중에는 다른 캐릭터가 엄폐물 뒤에서 기다리는 상황을 방지하기 위해 OffMeshLink 비활성화
+            occupyinngObstacle = naviAgent.currentOffMeshLinkData.offMeshLink.GetComponent<Obstacle>();
+            occupyinngObstacle.isOccupied = true;
         }
+
         // 이동 속도 조절을 위해 장애물 뛰어넘기는 수동으로 진행
-        if (isObstacleJumping)
+        if(isObstacleJumping)
         {
-            Vector3 yFloat = Vector3.up * transform.position.y;
-            transform.position = Vector3.MoveTowards(transform.position, obstacleJump.endPos + yFloat, obstacleJumpSpeed / battleSceneManager.logicTickPerSecond);
-            if ((transform.position - (obstacleJump.endPos + yFloat)).magnitude < 0.1f)
+            Debug.Log("장애물 극복 중");
+            Vector3 jumpEndPos = naviAgent.currentOffMeshLinkData.endPos;
+            transform.position = Vector3.MoveTowards(transform.position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.logicTickPerSecond);
+            if ((transform.position - jumpEndPos).magnitude < 0.1f)
             {
+                Debug.Log("장애물 극복 완료");
                 isObstacleJumping = false;
-                obstacleJump.offMeshLink.activated = true;
+                occupyinngObstacle.isOccupied = false;
                 naviAgent.CompleteOffMeshLink();
             }
         }
-        Debug.Log($"Move, distToDest: {Vector3.Distance(transform.position, moveDest)}");
+        else
+        {
+            // NavMeshAgent로 이동 수행
+            Debug.Log("그냥 걷기");
+            naviAgent.SetDestination(moveDest);
+        }
+        return BehaviorResult.Running;
+    }
+
+    BehaviorResult MoveEnd()
+    {
+        moveFrame++;
+        if(moveFrame >= moveEndFrame)
+        {
+            moveFrame = 0;
+            Debug.Log("MoveEnd");
+            return BehaviorResult.Success;
+        }
         return BehaviorResult.Running;
     }
 
@@ -380,7 +415,10 @@ public class Character : MonoBehaviour
         Gizmos.DrawSphere(moveDest, 0.1f);
 
         // 공격 대상
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(currentTarget.transform.position, 0.1f);
+        if(currentTarget != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(currentTarget.transform.position, 0.1f);
+        }
     }
 }
