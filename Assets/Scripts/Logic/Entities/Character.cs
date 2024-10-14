@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using AI;
 using Sirenix.OdinInspector;
-using UnityEditor.Search;
-using UnityEngine.AI;
 using System;
 
 [Serializable]
 public class Character : MonoBehaviour
 {
-    BattleSceneManager battleSceneManager;
-    NavMeshAgent naviAgent;
-    BehaviorTree bt;
-
-    public bool isAlive = true;
     [Title("기본 정보")]
+    public bool isAlive = true;
+
+    [Title("기본 스탯 정보")]
     public int maxHP;
     public int currentHP;
     public int attackPower;
@@ -24,14 +20,9 @@ public class Character : MonoBehaviour
     public float moveSpeed;
     public float obstacleJumpSpeed;
 
-    [Title("일반 스킬 관련")]
-    public bool normalSkillReady;
-    public bool usingSomeSkill;     // 스킬 사용 중 이동 중지 테스트용
-
     [Title("엄폐 관련")]
     public Obstacle coveringObstacle;       // 현재 엄폐를 수행중인 엄폐물
     public bool isDoingCover = false;
-    public float distToCover = 10f;
     private Obstacle occupyinngObstacle;           // 현재 점유 중인 장애물
 
     [Title("이동 관련")]
@@ -39,29 +30,41 @@ public class Character : MonoBehaviour
     public int moveEndFrame = 13;
     public Vector3 moveDest;
     public Obstacle destObstacle;
-    public float positioningAttackRangeRatio = 0.88f;       // 이동 위치 선정할 때 최대 사거리 대신 사거리에 이 값을 곱해서 사용
-
-    [Title("교전 관련")]
-    public int recentHit = 0;
-    public float distToEnemy = 10f;
-    public Character currentTarget;
     public float sightRange = 13f;
     public float attackRange = 7f;
-    public int maxAmmo = 15;
-    public int currentAmmo;
-
-    [Title("프레임 관련 정보")]
-    public int moveFrame;
-    public int attackFrame;
-    public int reloadFrame;
-
-    [Title("플래그")]
+    public float distToEnemy = 10f;
+    public float positioningAttackRangeRatio = 0.88f;       // 이동 위치 선정할 때 최대 사거리 대신 사거리에 이 값을 곱해서 사용
+    public int recentHit = 0;
     public bool isObstacleJumping;
+
+    [Title("전투 관련")]
+    public Character currentTarget;
+    public int maxAmmo = 15;
+    public int curAmmo;
+    public bool normalSkillReady;
+    public bool usingSomeSkill;     // 스킬 사용 중 이동 중지 테스트용
+
+    [Title("행동 관련 프레임 정보")]
+    [SerializeField, ReadOnly] int curActionFrame;
+    public int attackDurationFrame;
+    public int reloadDurationFrame;
+
+    [Title("컴포넌트 레퍼런스")]
+    public PathFinder pathFinder;
+
+
+
+    BattleSceneManager battleSceneManager;
+    BehaviorTree bt;
+
+    // 플래그
+    public bool isMoving { get; private set;}
+
 
     public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData)
     {
         battleSceneManager = battle;
-        naviAgent = GetComponent<NavMeshAgent>();
+        pathFinder = GetComponent<PathFinder>();
         bt = BuildBehaviorTree();
 
         // 필드 초기화
@@ -69,7 +72,7 @@ public class Character : MonoBehaviour
         defensePower = statData.DefensePowerLevel1;
         healPower = statData.HealPowerLevel1;
 
-        currentAmmo = maxAmmo;
+        curAmmo = maxAmmo;
         currentHP = maxHP;
     }
 
@@ -100,7 +103,7 @@ public class Character : MonoBehaviour
             BehaviorNode subTree_Move = new StatefulSequence(getNextDest, moveStart, moveIng, moveEnd);
 
             // 재장전
-                Conditional needToReload = new Conditional(() => { return currentAmmo <= 0; });
+                Conditional needToReload = new Conditional(() => { return curAmmo <= 0; });
                 BehaviorAction doReload = new BehaviorAction(Reload);
             BehaviorNode reload = new Sequence(needToReload, doReload);
             BehaviorNode subTree_Reload = new DecoratorInverter(reload);
@@ -108,7 +111,7 @@ public class Character : MonoBehaviour
             // 교전 개시
                 Conditional isEnemyCloseEnough = new Conditional(() => { return distToEnemy < attackRange; });
                 Conditional isNotHitEnough = new Conditional(()=> { return recentHit < 20; });
-                Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return currentAmmo > 0; });
+                Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return curAmmo > 0; });
                 BehaviorAction attack = new BehaviorAction(Attack);
             BehaviorNode basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
         StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, subTree_Move, subTree_Reload, basicAttack);
@@ -233,10 +236,11 @@ public class Character : MonoBehaviour
 
     BehaviorResult MoveStart()
     {
-        moveFrame++;
-        if(moveFrame >= moveStartFrame)
+        curActionFrame++;
+        if(curActionFrame >= moveStartFrame)
         {
-            moveFrame = 0;
+            curActionFrame = 0;
+            isMoving = true;
             // 점유중인 엄폐물이 있었다면 점유 해제
             if(coveringObstacle != null)
             {
@@ -280,11 +284,11 @@ public class Character : MonoBehaviour
         }
 
         // 엄폐물 뛰어넘기 조건
-        if(!isObstacleJumping && naviAgent.isOnOffMeshLink)
+        if(!isObstacleJumping && pathFinder.isOnOffMeshLink)
         {
             isObstacleJumping = true;
             // 뛰어넘는 중에는 다른 캐릭터가 엄폐물 뒤에서 기다리는 상황을 방지하기 위해 OffMeshLink 비활성화
-            occupyinngObstacle = naviAgent.currentOffMeshLinkData.offMeshLink.GetComponent<Obstacle>();
+            occupyinngObstacle = pathFinder.GetOccupyingObstacle();
             occupyinngObstacle.isOccupied = true;
         }
 
@@ -292,31 +296,35 @@ public class Character : MonoBehaviour
         if(isObstacleJumping)
         {
             Debug.Log("장애물 극복 중");
-            Vector3 jumpEndPos = naviAgent.currentOffMeshLinkData.endPos;
+            Vector3 jumpEndPos = pathFinder.GetObstacleJumpEndPos();
             transform.position = Vector3.MoveTowards(transform.position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.logicTickPerSecond);
             if ((transform.position - jumpEndPos).magnitude < 0.1f)
             {
                 Debug.Log("장애물 극복 완료");
                 isObstacleJumping = false;
                 occupyinngObstacle.isOccupied = false;
-                naviAgent.CompleteOffMeshLink();
+                pathFinder.CompleteObstacleJump();
             }
         }
         else
         {
-            // NavMeshAgent로 이동 수행
+            // 이동 수행
             Debug.Log("그냥 걷기");
-            naviAgent.SetDestination(moveDest);
+
+            float stepLength = moveSpeed / 30;
+            pathFinder.CalculatePath(moveDest);
+            pathFinder.FollowPath(stepLength);
         }
         return BehaviorResult.Running;
     }
 
     BehaviorResult MoveEnd()
     {
-        moveFrame++;
-        if(moveFrame >= moveEndFrame)
+        curActionFrame++;
+        if(curActionFrame >= moveEndFrame)
         {
-            moveFrame = 0;
+            curActionFrame = 0;
+            isMoving = false;
             Debug.Log("MoveEnd");
             return BehaviorResult.Success;
         }
@@ -338,7 +346,8 @@ public class Character : MonoBehaviour
         if (currentTarget != null) return BehaviorResult.Success;
         else
         {
-            GetComponent<NavMeshAgent>().SetDestination(transform.position + Vector3.forward * 3);
+            pathFinder.CalculatePath(transform.position + Vector3.forward * 3);
+            pathFinder.FollowPath(moveSpeed / 30);
             Debug.Log("Move to next wave");
             return BehaviorResult.Running;
         }
@@ -346,11 +355,11 @@ public class Character : MonoBehaviour
 
     BehaviorResult Reload()
     {
-        moveFrame++;
-        if(moveFrame >= reloadFrame)
+        curActionFrame++;
+        if(curActionFrame >= reloadDurationFrame)
         {
-            moveFrame = 0;
-            currentAmmo = 15;
+            curActionFrame = 0;
+            curAmmo = 15;
             Debug.Log("재장전");
             return BehaviorResult.Success;
         }
@@ -368,21 +377,21 @@ public class Character : MonoBehaviour
     {
         if (currentTarget == null || !currentTarget.isAlive)
         {
-            moveFrame = 0;
+            curActionFrame = 0;
             return BehaviorResult.Success;
         }
-        if (distToEnemy > attackRange || currentAmmo <= 0)
+        if (distToEnemy > attackRange || curAmmo <= 0)
         {
-            moveFrame = 0;
+            curActionFrame = 0;
             return BehaviorResult.Failure;
         }
-        moveFrame++;
-        if(moveFrame >= attackFrame)
+        curActionFrame++;
+        if(curActionFrame >= attackDurationFrame)
         {
             Debug.Log("Attack");
             currentTarget.TakeDamage(attackPower);
-            currentAmmo -= 1;
-            moveFrame = 0;
+            curAmmo -= 1;
+            curActionFrame = 0;
         }
         return BehaviorResult.Running;
     }

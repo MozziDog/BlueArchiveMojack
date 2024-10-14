@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 1900126608512869852}
   - component: {fileID: 1900126608512869840}
   - component: {fileID: 2214004237992574099}
+  - component: {fileID: 1610316902286220955}
+  - component: {fileID: 823090725880857749}
   m_Layer: 0
   m_Name: Shiroko
   m_TagString: Untagged
@@ -44,7 +46,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 5
+  m_Speed: 0
   m_Acceleration: 100
   avoidancePriority: 50
   m_AngularSpeed: 36000
@@ -74,29 +76,54 @@ MonoBehaviour:
   attackPower: 0
   defensePower: 0
   healPower: 0
-  moveSpeed: 4
+  moveSpeed: 5
   obstacleJumpSpeed: 3
-  normalSkillReady: 0
-  usingSomeSkill: 0
   coveringObstacle: {fileID: 0}
   isDoingCover: 0
-  distToCover: 0
   moveStartFrame: 0
   moveEndFrame: 13
   moveDest: {x: 0, y: 0, z: 0}
   destObstacle: {fileID: 0}
-  positioningAttackRangeRatio: 0.88
-  recentHit: 0
-  distToEnemy: 1
-  currentTarget: {fileID: 0}
   sightRange: 13
   attackRange: 13
-  maxAmmo: 15
-  currentAmmo: 0
-  moveFrame: 0
-  attackFrame: 17
-  reloadFrame: 40
+  distToEnemy: 1
+  positioningAttackRangeRatio: 0.88
+  recentHit: 0
   isObstacleJumping: 0
+  currentTarget: {fileID: 0}
+  maxAmmo: 15
+  curAmmo: 0
+  normalSkillReady: 0
+  usingSomeSkill: 0
+  curActionFrame: 0
+  attackDurationFrame: 17
+  reloadDurationFrame: 40
+  pathFinder: {fileID: 0}
+--- !u!114 &1610316902286220955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900126608512869841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb4dc91c4b7e6f744b0cca961c438f9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  naviAgent: {fileID: 1900126608512869840}
+--- !u!114 &823090725880857749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900126608512869841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb1d35005da9e1d48be7147bb3637f77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2467656742192138509
 GameObject:
   m_ObjectHideFlags: 0
