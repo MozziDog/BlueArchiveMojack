@@ -71,6 +71,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isAlive: 1
+  AttackType: 2
+  ArmorType: 2
   maxHP: 0
   currentHP: 0
   attackPower: 0
@@ -124,6 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb1d35005da9e1d48be7147bb3637f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  characterLogic: {fileID: 0}
 --- !u!1 &2467656742192138509
 GameObject:
   m_ObjectHideFlags: 0

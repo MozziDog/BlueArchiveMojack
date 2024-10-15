@@ -10,6 +10,8 @@ public class Character : MonoBehaviour
 {
     [Title("기본 정보")]
     public bool isAlive = true;
+    public AttackType AttackType;
+    public ArmorType ArmorType;
 
     [Title("기본 스탯 정보")]
     public int maxHP;
@@ -389,17 +391,19 @@ public class Character : MonoBehaviour
         if(curActionFrame >= attackDurationFrame)
         {
             Debug.Log("Attack");
-            currentTarget.TakeDamage(attackPower);
+            currentTarget.TakeDamage(AttackType, attackPower);
             curAmmo -= 1;
             curActionFrame = 0;
         }
         return BehaviorResult.Running;
     }
 
-    public void TakeDamage(int dmg)
+    public void TakeDamage(AttackType attackType, int dmg)
     {
         // TODO: 공격 계산식 수정하기
-        currentHP -= (dmg - defensePower);
+        float damageMultiplier = AttackEffectiveness.GetEffectiveness(attackType, ArmorType);
+        Debug.Log($"특효 배율: {damageMultiplier}");
+        currentHP -= Mathf.RoundToInt(dmg * damageMultiplier);
         if(currentHP <= 0)
         {
             isAlive = false;
