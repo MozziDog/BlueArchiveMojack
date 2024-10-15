@@ -81,7 +81,7 @@ public class Character : MonoBehaviour
     protected BehaviorTree BuildBehaviorTree()
     {
         // 다음 웨이브 스폰까지 기다리기
-            Conditional isNoEnemy = new Conditional(() => { return battleSceneManager.activeEnemies.Count <= 0; });
+            Conditional isNoEnemy = new Conditional(() => { return battleSceneManager.EnemiesActive.Count <= 0; });
             BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
         BehaviorNode waitUntilEnemySpawn = new DecoratorInverter(new Sequence(isNoEnemy, waitEnemySpawn));
 
@@ -127,17 +127,18 @@ public class Character : MonoBehaviour
     // Update is called once per frame
     public void Tick()
     {
+        bt.Behave();
+        // BT 내에서 목표 처치/소실 정보를 가지고 판단하기 위해 다음 적 선정은 BT 평가 이후에 진행
         if(currentTarget == null || !currentTarget.isAlive)
         {
             FindNextEnemy();
         }
-        bt.Behave();
     }
 
     public void FindNextEnemy()
     {
         float minDist = float.MaxValue;
-        foreach(var enemy in battleSceneManager.activeEnemies)
+        foreach(var enemy in battleSceneManager.EnemiesActive)
         {
             if(currentTarget == null || !currentTarget.isAlive)
             {
@@ -188,7 +189,7 @@ public class Character : MonoBehaviour
         // 2. 그 중에 가장 나와 가까운 것을 선정
         Obstacle targetObstacle = null;
         float targetObstacleDistance = float.MaxValue;
-        foreach(var ob in battleSceneManager.obstacles)
+        foreach(var ob in battleSceneManager.Obstacles)
         {
             // 엄폐물이 이미 점유중인 경우 더 고려할 필요 없음
             if(ob.isOccupied) continue;
@@ -299,7 +300,7 @@ public class Character : MonoBehaviour
         {
             Debug.Log("장애물 극복 중");
             Vector3 jumpEndPos = pathFinder.GetObstacleJumpEndPos();
-            transform.position = Vector3.MoveTowards(transform.position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.logicTickPerSecond);
+            transform.position = Vector3.MoveTowards(transform.position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.BaseLogicTickrate);
             if ((transform.position - jumpEndPos).magnitude < 0.1f)
             {
                 Debug.Log("장애물 극복 완료");
@@ -313,7 +314,7 @@ public class Character : MonoBehaviour
             // 이동 수행
             Debug.Log("그냥 걷기");
 
-            float stepLength = moveSpeed / 30;
+            float stepLength = moveSpeed / battleSceneManager.BaseLogicTickrate;
             pathFinder.CalculatePath(moveDest);
             pathFinder.FollowPath(stepLength);
         }
@@ -349,7 +350,7 @@ public class Character : MonoBehaviour
         else
         {
             pathFinder.CalculatePath(transform.position + Vector3.forward * 3);
-            pathFinder.FollowPath(moveSpeed / 30);
+            pathFinder.FollowPath(moveSpeed / battleSceneManager.BaseLogicTickrate);
             Debug.Log("Move to next wave");
             return BehaviorResult.Running;
         }
@@ -375,6 +376,8 @@ public class Character : MonoBehaviour
         return BehaviorResult.Success;
     }
 
+    public GameObject BulletPrefab;
+
     BehaviorResult Attack()
     {
         if (currentTarget == null || !currentTarget.isAlive)
@@ -390,8 +393,17 @@ public class Character : MonoBehaviour
         curActionFrame++;
         if(curActionFrame >= attackDurationFrame)
         {
-            Debug.Log("Attack");
-            currentTarget.TakeDamage(AttackType, attackPower);
+            Debug.Log("기본 공격 투사체 생성");
+            GameObject bulletInstance = Instantiate(BulletPrefab, transform.position, Quaternion.identity);
+            Bullet bulletComponent = bulletInstance.GetComponent<Bullet>();
+            bulletComponent.Attacker = this;
+            bulletComponent.Target = currentTarget;
+            bulletComponent.AttackType = AttackType;
+            bulletComponent.AttackPower = attackPower;
+
+            battleSceneManager.AddBullet(bulletComponent);
+
+            // currentTarget.TakeDamage(AttackType, attackPower);
             curAmmo -= 1;
             curActionFrame = 0;
         }

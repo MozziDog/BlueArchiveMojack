@@ -988,6 +988,18 @@ MonoBehaviour:
   attackDurationFrame: 0
   reloadDurationFrame: 0
   pathFinder: {fileID: 0}
+  BulletPrefab: {fileID: 0}
+--- !u!114 &1410396192 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3613835360911017022, guid: adee56418d5ae2e478366ab6c449ade6, type: 3}
+  m_PrefabInstance: {fileID: 1962720486}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c00376c17ac068743bacc610cc635a98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1568502160
 GameObject:
   m_ObjectHideFlags: 0
@@ -1017,29 +1029,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5db8a378d541ff43ace14fbc8c17599, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterViewDatabase: {fileID: 11400000, guid: 272b3fa63853d8d43a0f58bd4df3abe2, type: 2}
-  battleData:
+  BattleData:
     characters:
     - {fileID: 11400000, guid: aa1662e18c4216342ab169716724ad97, type: 2}
     characterStats:
     - {fileID: 11400000, guid: 0f08f87bdf7f90a45973a4d10dba3983, type: 2}
     enemies: []
     enemyStats: []
-  battleState: 1
-  logicTickPerSecond: 30
-  spawnPoint:
+  CharacterViewDatabase: {fileID: 11400000, guid: 272b3fa63853d8d43a0f58bd4df3abe2, type: 2}
+  SpawnPoint:
   - {fileID: 709233479}
   - {fileID: 114394170}
   - {fileID: 2146014046}
   - {fileID: 135701587}
-  activeCharacters: []
-  activeEnemies:
+  LogicTickPerSecond: 30
+  BattleState: 1
+  CharactersActive: []
+  EnemiesActive:
   - {fileID: 1384723418}
   - {fileID: 1762387912}
-  obstacles:
+  Obstacles:
+  - {fileID: 1410396192}
   - {fileID: 200553190}
   - {fileID: 761377780}
   - {fileID: 3613835360427442536}
+  - {fileID: 200553190}
+  BulletsActive: []
+  BulletsToRemove: []
 --- !u!4 &1568502162
 Transform:
   m_ObjectHideFlags: 0
@@ -1236,6 +1252,7 @@ MonoBehaviour:
   attackDurationFrame: 0
   reloadDurationFrame: 0
   pathFinder: {fileID: 0}
+  BulletPrefab: {fileID: 0}
 --- !u!1001 &1962720486
 PrefabInstance:
   m_ObjectHideFlags: 0
