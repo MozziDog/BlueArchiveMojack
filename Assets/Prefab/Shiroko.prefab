@@ -101,6 +101,7 @@ MonoBehaviour:
   attackDurationFrame: 17
   reloadDurationFrame: 40
   pathFinder: {fileID: 0}
+  BulletPrefab: {fileID: 3891039622126859496, guid: c052015df06085948ab20a7c1c549d6c, type: 3}
 --- !u!114 &1610316902286220955
 MonoBehaviour:
   m_ObjectHideFlags: 0
