@@ -12,6 +12,7 @@ public class Character : MonoBehaviour
     public bool isAlive = true;
     public AttackType AttackType;
     public ArmorType ArmorType;
+    public AutoSkillCondition normalSkillConditionData;
 
     [Title("기본 스탯 정보")]
     public int maxHP;
@@ -43,18 +44,17 @@ public class Character : MonoBehaviour
     public Character currentTarget;
     public int maxAmmo = 15;
     public int curAmmo;
-    public bool normalSkillReady;
     public bool usingSomeSkill;     // 스킬 사용 중 이동 중지 테스트용
+    public IAutoSkillCheck normalSkillCondition;
 
     [Title("행동 관련 프레임 정보")]
     [SerializeField, ReadOnly] int curActionFrame;
     public int attackDurationFrame;
+    public int normalSkillDurationFrame;
     public int reloadDurationFrame;
 
     [Title("컴포넌트 레퍼런스")]
     public PathFinder pathFinder;
-
-
 
     BattleSceneManager battleSceneManager;
     BehaviorTree bt;
@@ -76,6 +76,17 @@ public class Character : MonoBehaviour
 
         curAmmo = maxAmmo;
         currentHP = maxHP;
+
+        // 일반 스킬 조건 등록
+        switch(normalSkillConditionData.conditionType)
+        {
+            case AutoSkillConditionType.Cooltime:
+                normalSkillCondition = new AutoSkillCheckCooltime(normalSkillConditionData.argument);
+                break;
+            default:
+                Debug.LogError("해당 스킬 조건은 아직 미구현됨");
+                break;
+        }
     }
 
     protected BehaviorTree BuildBehaviorTree()
@@ -92,7 +103,7 @@ public class Character : MonoBehaviour
 
         // 교전
             // 기본 스킬
-                Conditional canUseNormalSkill = new Conditional(() => { return normalSkillReady; });
+                Conditional canUseNormalSkill = new Conditional(() => { return normalSkillCondition.CanUseSkill(); });
                 BehaviorAction useNormalSkill = new BehaviorAction(UseNormalSkill);
             BehaviorNode checkAndUseNormalSkill = new StatefulSequence(canUseNormalSkill, useNormalSkill);
             BehaviorNode subTree_NormalSkill = new DecoratorInverter(checkAndUseNormalSkill);
@@ -127,15 +138,24 @@ public class Character : MonoBehaviour
     // Update is called once per frame
     public void Tick()
     {
+        UpdateValues();
         bt.Behave();
-        // BT 내에서 목표 처치/소실 정보를 가지고 판단하기 위해 다음 적 선정은 BT 평가 이후에 진행
+    }
+
+    void UpdateValues()
+    {
         if(currentTarget == null || !currentTarget.isAlive)
         {
             FindNextEnemy();
         }
+        if(currentTarget != null)
+        {
+            distToEnemy = Vector3.Distance(transform.position, currentTarget.transform.position);
+        }
+        normalSkillCondition.CheckSkillCondition();
     }
 
-    public void FindNextEnemy()
+    void FindNextEnemy()
     {
         float minDist = float.MaxValue;
         foreach(var enemy in battleSceneManager.EnemiesActive)
@@ -261,7 +281,6 @@ public class Character : MonoBehaviour
         // MoveIng 종료 조건 판단
         if(!isObstacleJumping)
         {
-            distToEnemy = (transform.position - currentTarget.transform.position).magnitude;
             // 엄폐물로 이동중인 경우, 해당 엄폐물이 다른 캐릭터에 의해 '점유'되었는지 체크
             if(destObstacle != null)
             {
@@ -371,9 +390,17 @@ public class Character : MonoBehaviour
 
     BehaviorResult UseNormalSkill()
     {
-        Debug.Log("기본 스킬 사용");
-        normalSkillReady = false;
-        return BehaviorResult.Success;
+        curActionFrame ++;
+        if(curActionFrame >= normalSkillDurationFrame)
+        {
+            curActionFrame = 0;
+            normalSkillCondition.ResetSkillCondition();
+            Debug.Log("기본 스킬 사용 종료");
+            return BehaviorResult.Success;
+        }
+        curActionFrame++;
+        Debug.Log("기본 스킬 사용 중");
+        return BehaviorResult.Running;
     }
 
     public GameObject BulletPrefab;
