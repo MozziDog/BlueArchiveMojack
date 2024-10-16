@@ -73,6 +73,9 @@ MonoBehaviour:
   isAlive: 1
   AttackType: 2
   ArmorType: 2
+  normalSkillConditionData:
+    conditionType: 1
+    argument: 300
   maxHP: 0
   currentHP: 0
   attackPower: 0
@@ -95,10 +98,10 @@ MonoBehaviour:
   currentTarget: {fileID: 0}
   maxAmmo: 15
   curAmmo: 0
-  normalSkillReady: 0
   usingSomeSkill: 0
   curActionFrame: 0
   attackDurationFrame: 17
+  normalSkillDurationFrame: 50
   reloadDurationFrame: 40
   pathFinder: {fileID: 0}
   BulletPrefab: {fileID: 3891039622126859496, guid: c052015df06085948ab20a7c1c549d6c, type: 3}
