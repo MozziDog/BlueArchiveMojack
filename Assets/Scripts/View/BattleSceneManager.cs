@@ -112,20 +112,29 @@ public class BattleSceneManager : MonoBehaviour
         }
     }
 
-    public void UseSkillCard(int index)
+    public void TryUseSkillCard(int index)
     {
-        // EX 스킬 사용
+        // ex 스킬 사용 가능한지 먼저 체크
         if(skillCardHand.Count <= index)
         {
             Debug.LogError("해당 위치에는 스킬카드가 없음!");
             return;
         }
         Character character = skillCardHand[index];
+        if(!character.CanUseExSkill)
+        {
+            Debug.LogWarning("장애물을 뛰어넘는 중에는 Ex 스킬을 사용할 수 없음");
+            return;
+        }
+
         character.exSkillTrigger = true;
 
-        // 스킬 카드를 덱의 맨 밑으로 넣기
+        // 스킬 카드를 덱의 맨 밑으로 넣고 한 장 드로우
         skillCardHand.Remove(character);
         skillCardDeck.AddLast(character);
+        DrawSkillCard();
+
+        return;
     }
 
     // Tick 안의 foreach에서 엔티티가 삭제/추가되면 안되므로
