@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Linq;
+using System;
 
 public class BattleSceneManager : MonoBehaviour
 {
@@ -17,11 +18,13 @@ public class BattleSceneManager : MonoBehaviour
     public BattleSceneState BattleState;
 
     [Title("관리중인 엔티티들")]
-    public List<Character> CharactersActive;      // 아군
-    public List<Character> EnemiesActive;          // 적군
+    public CharacterGroup CharactersActive;      // 아군
+    List<Character> _charactersToRemove = new List<Character>();
+    public CharacterGroup EnemiesActive;          // 적군
+    List<Character> _enemiesToRemove = new List<Character>();
     public List<Obstacle> Obstacles;
-    [SerializeField] List<Bullet> BulletsActive;
-    [SerializeField] List<Bullet> BulletsToRemove;
+    public List<Bullet> BulletsActive;
+    List<Bullet> _bulletsToRemove = new List<Bullet>();
 
     [Title("EX 스킬 관련")]
     public int ExCostCount = 0;         // 현재 코스트 갯수. Ex 스킬 사용에 필요.
@@ -31,10 +34,14 @@ public class BattleSceneManager : MonoBehaviour
     public List<Character> skillCardHand = new List<Character>();       // 패. 최대 3장
     public LinkedList<Character> skillCardDeck = new LinkedList<Character>(); // 덱. 패에 들고 있지 않은 모든 스킬카드.
 
-    // Start is called before the first frame update
+    // 전투 중 발생하는 이벤트들
+    public Action OnBattleBegin;
+    public delegate void CharacterDieEvent(Character deadCharacter);
+    public CharacterDieEvent OnAllyDie;
+    public CharacterDieEvent OnEnemyDie;
+
     void Start()
     {
-        // 원래는 로딩 끝나면 호출해줘야 하는데 지금은 일단 Start에서 호출하는 것으로...
         StartGame(BattleData);
     }
 
@@ -64,7 +71,7 @@ public class BattleSceneManager : MonoBehaviour
         }
 
         // 스킬카드 덱 구성 & 최대 3장 드로우
-        foreach(int i in Enumerable.Range(0, CharactersActive.Count).OrderBy(x => Random.Range(0,1)))
+        foreach(int i in Enumerable.Range(0, CharactersActive.Count).OrderBy(x => UnityEngine.Random.Range(0,1)))
         {
             skillCardDeck.AddLast(CharactersActive[i]);
         }
@@ -72,9 +79,13 @@ public class BattleSceneManager : MonoBehaviour
         {
             DrawSkillCard();
         }
+        OnAllyDie += RemoveSkillCardFromDeck;
+
+        // 초기화 완료 후, 게임 루프 시작 전에 이벤트 호출
+        OnBattleBegin();
 
         // 게임루프 수행
-        while(BattleState == BattleSceneState.InBattle)
+        while (BattleState == BattleSceneState.InBattle)
         {
             if(CharactersActive.Count <= 0)
             {
@@ -164,32 +175,62 @@ public class BattleSceneManager : MonoBehaviour
         return;
     }
 
-    // Tick 안의 foreach에서 엔티티가 삭제/추가되면 안되므로
-    // 삭제해야 할 엔티티들은 Tick 후에 따로 삭제
+    /// <summary>
+    /// Tick 안의 루프에서 엔티티가 삭제/추가되면 안되므로 삭제해야 할 엔티티들은 Tick 후에 따로 삭제
+    /// </summary>
     void RemoveInactiveEntities()
     {
-        foreach(var bullet in BulletsToRemove)
+        // 순회에 문제 없도록 인덱스 뒤쪽부터 삭제
+        if (_charactersToRemove.Count > 0)
         {
-            BulletsActive.Remove(bullet);
-            Destroy(bullet.gameObject);
+            for (int i = _charactersToRemove.Count - 1; i >= 0; i--)
+            {
+                CharactersActive.Remove(_charactersToRemove[i]);
+                Destroy(_charactersToRemove[i].gameObject);
+            }
+            _charactersToRemove.Clear();
         }
-        BulletsToRemove.Clear();
+        if (_enemiesToRemove.Count > 0)
+        {
+            for(int i = _enemiesToRemove.Count - 1; i>=0; i--)
+            {
+                EnemiesActive.Remove(_enemiesToRemove[i]);
+                Destroy(_enemiesToRemove[i].gameObject);
+            }
+            _enemiesToRemove.Clear();
+        }
+        if (_bulletsToRemove.Count > 0)
+        {
+            for (int i = _bulletsToRemove.Count - 1; i >= 0; i--)
+            {
+                BulletsActive.Remove(_bulletsToRemove[i]);
+                Destroy(_bulletsToRemove[i].gameObject);
+            }
+            _bulletsToRemove.Clear();
+        }
     }
 
     /// <summary>
-    /// 아군 사망 시 이벤트
+    /// 아군 적군 상관없이 임의의 캐릭터 사망 시 이벤트
     /// </summary>
     public void OnCharacterDie(Character deadCharacter)
     {
-        RemoveSkillCardFromDeck(deadCharacter);
-    }
-
-    /// <summary>
-    /// 적군 사망 시 이벤트
-    /// </summary>
-    public void OnEnemyDie()
-    {
-
+        if(CharactersActive.Contains(deadCharacter))
+        {
+            if (OnAllyDie != null)
+            {
+                OnAllyDie(deadCharacter);
+            }
+            _charactersToRemove.Add(deadCharacter);
+        }
+        else if(EnemiesActive.Contains(deadCharacter))
+        {
+            if (OnEnemyDie != null)
+            {
+                OnEnemyDie(deadCharacter);
+            }
+            _enemiesToRemove.Add(deadCharacter);
+        }
     }
 
     public void AddBullet(Bullet bullet)
@@ -200,6 +241,6 @@ public class BattleSceneManager : MonoBehaviour
 
     public void RemoveBullet(Bullet bullet)
     {
-        BulletsToRemove.Add(bullet);
+        _bulletsToRemove.Add(bullet);
     }
 }
