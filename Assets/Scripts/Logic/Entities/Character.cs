@@ -9,19 +9,20 @@ using System;
 public class Character : MonoBehaviour
 {
     [Title("기본 정보")]
+    public string Name;
     public bool isAlive = true;
     public AttackType AttackType;
     public ArmorType ArmorType;
     public AutoSkillCondition normalSkillConditionData;
 
     [Title("기본 스탯 정보")]
-    public int maxHP;
-    public int currentHP;
-    public int attackPower;
-    public int defensePower;
-    public int healPower;
-    public float moveSpeed;
-    public float obstacleJumpSpeed;
+    [SerializeField] int _maxHP;
+    [SerializeField] int currentHP;
+    [SerializeField] int attackPower;
+    [SerializeField] int defensePower;
+    [SerializeField] int healPower;
+    [SerializeField] float moveSpeed;
+    public int CostRegen;
 
     [Title("엄폐 관련")]
     public Obstacle coveringObstacle;       // 현재 엄폐를 수행중인 엄폐물
@@ -31,6 +32,7 @@ public class Character : MonoBehaviour
     [Title("이동 관련")]
     public int moveStartFrame = 0;
     public int moveEndFrame = 13;
+    [SerializeField] float obstacleJumpSpeed;
     public Vector3 moveDest;
     public Obstacle destObstacle;
     public float sightRange = 13f;
@@ -42,9 +44,9 @@ public class Character : MonoBehaviour
 
     [Title("전투 관련")]
     public Character currentTarget;
-    public int maxAmmo = 15;
-    public int curAmmo;
-    public bool usingSomeSkill;     // 스킬 사용 중 이동 중지 테스트용
+    [SerializeField] int _maxAmmo = 15;
+    [SerializeField] int _curAmmo;
+    public int ExSkillCost;
     public bool exSkillTrigger;
     public IAutoSkillCheck normalSkillCondition;
     public GameObject BulletPrefab;
@@ -64,8 +66,9 @@ public class Character : MonoBehaviour
 
 
     // 프로퍼티
-    public bool isMoving { get; private set;}
-    public bool CanUseExSkill { get { return !_isObstacleJumping; }}
+    public bool isMoving { get; private set; }
+    public bool isDoingSomeAction { get; private set; }
+    public bool CanUseExSkill { get{ return !_isObstacleJumping; } }
 
 
     public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData)
@@ -75,12 +78,15 @@ public class Character : MonoBehaviour
         bt = BuildBehaviorTree();
 
         // 필드 초기화
+        Name = charData.Name;
         attackPower = statData.AttackPowerLevel1;
         defensePower = statData.DefensePowerLevel1;
         healPower = statData.HealPowerLevel1;
+        CostRegen = statData.CostRegen;
+        ExSkillCost = charData.ExCost;
 
-        curAmmo = maxAmmo;
-        currentHP = maxHP;
+        _curAmmo = _maxAmmo;
+        currentHP = _maxHP;
 
         // 일반 스킬 조건 등록
         switch(normalSkillConditionData.conditionType)
@@ -127,7 +133,7 @@ public class Character : MonoBehaviour
             BehaviorNode subTree_Move = new StatefulSequence(getNextDest, moveStart, moveDoing, moveEnd);
 
             // 재장전
-                Conditional needToReload = new Conditional(() => { return curAmmo <= 0; });
+                Conditional needToReload = new Conditional(() => { return _curAmmo <= 0; });
                 BehaviorAction doReload = new BehaviorAction(Reload);
             BehaviorNode reload = new Sequence(needToReload, doReload);
             BehaviorNode subTree_Reload = new DecoratorInverter(reload);
@@ -135,7 +141,7 @@ public class Character : MonoBehaviour
             // 교전 개시
                 Conditional isEnemyCloseEnough = new Conditional(() => { return distToEnemy < attackRange; });
                 Conditional isNotHitEnough = new Conditional(()=> { return recentHit < 20; });
-                Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return curAmmo > 0; });
+                Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return _curAmmo > 0; });
                 BehaviorAction attack = new BehaviorAction(Attack);
             BehaviorNode subTree_basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
         StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, subTree_Move, subTree_Reload, subTree_basicAttack);
@@ -369,7 +375,7 @@ public class Character : MonoBehaviour
 
     BehaviorResult WaitSkillDone()
     {
-        if (usingSomeSkill)
+        if (isDoingSomeAction)
         {
             Debug.Log("스킬 종료 대기중");
             return BehaviorResult.Running;
@@ -396,11 +402,12 @@ public class Character : MonoBehaviour
             curActionFrame = 0;
             return BehaviorResult.Success;
         }
-        if (distToEnemy > attackRange || curAmmo <= 0)
+        if (distToEnemy > attackRange || _curAmmo <= 0)
         {
             curActionFrame = 0;
             return BehaviorResult.Failure;
         }
+
         curActionFrame++;
         if(curActionFrame >= attackDurationFrame)
         {
@@ -415,7 +422,7 @@ public class Character : MonoBehaviour
             battleSceneManager.AddBullet(bulletComponent);
 
             // currentTarget.TakeDamage(AttackType, attackPower);
-            curAmmo -= 1;
+            _curAmmo -= 1;
             curActionFrame = 0;
         }
         return BehaviorResult.Running;
@@ -424,10 +431,12 @@ public class Character : MonoBehaviour
     BehaviorResult Reload()
     {
         curActionFrame++;
+        isDoingSomeAction = true;
         if(curActionFrame >= reloadDurationFrame)
         {
             curActionFrame = 0;
-            curAmmo = 15;
+            isDoingSomeAction = false;
+            _curAmmo = 15;
             Debug.Log("재장전");
             return BehaviorResult.Success;
         }
@@ -437,9 +446,11 @@ public class Character : MonoBehaviour
     BehaviorResult UseExSkill()
     {
         curActionFrame++;
+        isDoingSomeAction = true;
         if(curActionFrame >= exSkillDurationFrame)
         {
             curActionFrame = 0;
+            isDoingSomeAction = false;
             exSkillTrigger = false;
             Debug.Log("Ex 스킬 사용 종료");
             return BehaviorResult.Success;
@@ -451,9 +462,11 @@ public class Character : MonoBehaviour
     BehaviorResult UseNormalSkill()
     {
         curActionFrame++;
+        isDoingSomeAction = true;
         if(curActionFrame >= normalSkillDurationFrame)
         {
             curActionFrame = 0;
+            isDoingSomeAction = false;
             normalSkillCondition.ResetSkillCondition();
             Debug.Log("기본 스킬 사용 종료");
             return BehaviorResult.Success;
@@ -479,7 +492,7 @@ public class Character : MonoBehaviour
     public void TakeHeal(int heal)
     {
         currentHP += heal;
-        if(currentHP > maxHP) currentHP = maxHP;
+        if(currentHP > _maxHP) currentHP = _maxHP;
     }
 
     private void OnDrawGizmosSelected()
