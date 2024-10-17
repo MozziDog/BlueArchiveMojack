@@ -60,10 +60,9 @@ public class Character : MonoBehaviour
 
     [Title("컴포넌트 레퍼런스")]
     public PathFinder pathFinder;
+    [SerializeField] BattleSceneManager battleSceneManager;
 
-    BattleSceneManager battleSceneManager;
-    BehaviorTree bt;
-
+    BehaviorTree _bt;
 
     // 프로퍼티
     public bool isMoving { get; private set; }
@@ -75,7 +74,7 @@ public class Character : MonoBehaviour
     {
         battleSceneManager = battle;
         pathFinder = GetComponent<PathFinder>();
-        bt = BuildBehaviorTree();
+        _bt = BuildBehaviorTree();
 
         // 필드 초기화
         Name = charData.Name;
@@ -159,7 +158,7 @@ public class Character : MonoBehaviour
     public void Tick()
     {
         UpdateValues();
-        bt.Behave();
+        _bt.Behave();
     }
 
     void UpdateValues()
@@ -484,9 +483,15 @@ public class Character : MonoBehaviour
         currentHP -= Mathf.RoundToInt(dmg * damageMultiplier);
         if(currentHP <= 0)
         {
-            isAlive = false;
-            // TODO: 후퇴 연출 필요
+            Die();
         }
+    }
+
+    void Die()
+    {
+        // TODO: 후퇴 연출 필요
+        isAlive = false;
+        battleSceneManager.OnCharacterDie(this);
     }
 
     public void TakeHeal(int heal)
