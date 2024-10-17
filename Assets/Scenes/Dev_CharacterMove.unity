@@ -574,7 +574,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1568502161}
         m_TargetAssemblyTypeName: BattleSceneManager, Assembly-CSharp
-        m_MethodName: UseSkillCard
+        m_MethodName: TryUseSkillCard
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1389,7 +1389,7 @@ MonoBehaviour:
   distToEnemy: 10
   positioningAttackRangeRatio: 0.88
   recentHit: 0
-  isObstacleJumping: 0
+  _isObstacleJumping: 0
   currentTarget: {fileID: 0}
   maxAmmo: 15
   curAmmo: 0
@@ -1963,7 +1963,7 @@ MonoBehaviour:
   distToEnemy: 10
   positioningAttackRangeRatio: 0.88
   recentHit: 0
-  isObstacleJumping: 0
+  _isObstacleJumping: 0
   currentTarget: {fileID: 0}
   maxAmmo: 15
   curAmmo: 0
@@ -2062,7 +2062,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1568502161}
         m_TargetAssemblyTypeName: BattleSceneManager, Assembly-CSharp
-        m_MethodName: UseSkillCard
+        m_MethodName: TryUseSkillCard
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2325,7 +2325,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1568502161}
         m_TargetAssemblyTypeName: BattleSceneManager, Assembly-CSharp
-        m_MethodName: UseSkillCard
+        m_MethodName: TryUseSkillCard
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -38,7 +38,7 @@ public class Character : MonoBehaviour
     public float distToEnemy = 10f;
     public float positioningAttackRangeRatio = 0.88f;       // 이동 위치 선정할 때 최대 사거리 대신 사거리에 이 값을 곱해서 사용
     public int recentHit = 0;
-    public bool isObstacleJumping;
+    [SerializeField] bool _isObstacleJumping;
 
     [Title("전투 관련")]
     public Character currentTarget;
@@ -62,8 +62,10 @@ public class Character : MonoBehaviour
     BattleSceneManager battleSceneManager;
     BehaviorTree bt;
 
-    // 플래그
+
+    // 프로퍼티
     public bool isMoving { get; private set;}
+    public bool CanUseExSkill { get { return !_isObstacleJumping; }}
 
 
     public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData)
@@ -291,7 +293,7 @@ public class Character : MonoBehaviour
     BehaviorResult MoveDoing()
     {
         // MoveIng 종료 조건 판단
-        if(!isObstacleJumping)
+        if(!_isObstacleJumping)
         {
             // 엄폐물로 이동중인 경우, 해당 엄폐물이 다른 캐릭터에 의해 '점유'되었는지 체크
             if(destObstacle != null)
@@ -318,16 +320,16 @@ public class Character : MonoBehaviour
         }
 
         // 엄폐물 뛰어넘기 조건
-        if(!isObstacleJumping && pathFinder.isOnOffMeshLink)
+        if(!_isObstacleJumping && pathFinder.isOnOffMeshLink)
         {
-            isObstacleJumping = true;
+            _isObstacleJumping = true;
             // 뛰어넘는 중에는 다른 캐릭터가 엄폐물 뒤에서 기다리는 상황을 방지하기 위해 OffMeshLink 비활성화
             occupyinngObstacle = pathFinder.GetOccupyingObstacle();
             occupyinngObstacle.isOccupied = true;
         }
 
         // 이동 속도 조절을 위해 장애물 뛰어넘기는 수동으로 진행
-        if(isObstacleJumping)
+        if(_isObstacleJumping)
         {
             Debug.Log("장애물 극복 중");
             Vector3 jumpEndPos = pathFinder.GetObstacleJumpEndPos();
@@ -335,7 +337,7 @@ public class Character : MonoBehaviour
             if ((transform.position - jumpEndPos).magnitude < 0.1f)
             {
                 Debug.Log("장애물 극복 완료");
-                isObstacleJumping = false;
+                _isObstacleJumping = false;
                 occupyinngObstacle.isOccupied = false;
                 pathFinder.CompleteObstacleJump();
             }
