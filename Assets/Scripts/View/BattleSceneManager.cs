@@ -23,7 +23,11 @@ public class BattleSceneManager : MonoBehaviour
     [SerializeField] List<Bullet> BulletsActive;
     [SerializeField] List<Bullet> BulletsToRemove;
 
-    [Title("스킬 카드")]
+    [Title("EX 스킬 관련")]
+    public int ExCostCount = 0;         // 현재 코스트 갯수. Ex 스킬 사용에 필요.
+    public int ExCostRecharging = 0;    // 현재 코스트 충전량. 이 값이 최대치가 되면 ExCostCount가 1 증가.
+    public int ExCostGaugePerCount;     // 코스트 갯수 1개를 증가시키기 위해 필요한 충전량.
+    public int ExCostRegen = 0;         // 틱 당 코스트 회복량. 캐릭터 코스트 회복량의 총합.
     public List<Character> skillCardHand = new List<Character>();       // 패. 최대 3장
     public LinkedList<Character> skillCardDeck = new LinkedList<Character>(); // 덱. 패에 들고 있지 않은 모든 스킬카드.
 
@@ -53,6 +57,12 @@ public class BattleSceneManager : MonoBehaviour
             CharactersActive.Add(characterComponent);
         }
 
+        // 코스트 회복량 산정
+        foreach(var character in CharactersActive)
+        {
+            ExCostRegen += character.CostRegen;
+        }
+
         // 스킬카드 덱 구성 & 최대 3장 드로우
         foreach(int i in Enumerable.Range(0, CharactersActive.Count).OrderBy(x => Random.Range(0,1)))
         {
@@ -80,6 +90,18 @@ public class BattleSceneManager : MonoBehaviour
 
     protected void Tick()
     {
+        // 코스트 회복
+        if(ExCostCount < 10)
+        {
+            ExCostRecharging += ExCostRegen;
+            if(ExCostRecharging > ExCostGaugePerCount)
+            {
+                ExCostRecharging -= ExCostGaugePerCount;
+                ExCostCount++;
+            }
+        }
+
+        // 관리중인 객체들을 모두 틱
         foreach(var character in CharactersActive)
         {
             character.Tick();
@@ -124,6 +146,11 @@ public class BattleSceneManager : MonoBehaviour
         if(!character.CanUseExSkill)
         {
             Debug.LogWarning("장애물을 뛰어넘는 중에는 Ex 스킬을 사용할 수 없음");
+            return;
+        }
+        if(ExCostCount < character.ExSkillCost)
+        {
+            Debug.Log("EX스킬 사용을 위한 코스트가 충분하지 않음!");
             return;
         }
 

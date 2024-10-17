@@ -22,4 +22,5 @@ public class CharacterData : ScriptableObject       // 임시로 ScriptableObjec
 
     public List<SkillData> skills;
     public List<EquipmentCategory> EquipmentSlot;
+    public int ExCost;          // TODO: 별도의 스킬 클래스 만들어서 그쪽으로 코스트 정보 옮기기.
 }

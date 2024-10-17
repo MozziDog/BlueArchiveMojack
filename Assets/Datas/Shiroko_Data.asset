@@ -25,3 +25,4 @@ MonoBehaviour:
   DefenceType: 1
   skills: []
   EquipmentSlot: 010000000600000009000000
+  ExCost: 2
