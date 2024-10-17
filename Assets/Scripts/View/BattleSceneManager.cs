@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using System.Linq;
 
 public class BattleSceneManager : MonoBehaviour
 {
@@ -21,6 +22,10 @@ public class BattleSceneManager : MonoBehaviour
     public List<Obstacle> Obstacles;
     [SerializeField] List<Bullet> BulletsActive;
     [SerializeField] List<Bullet> BulletsToRemove;
+
+    [Title("스킬 카드")]
+    public List<Character> skillCardHand = new List<Character>();       // 패. 최대 3장
+    public LinkedList<Character> skillCardDeck = new LinkedList<Character>(); // 덱. 패에 들고 있지 않은 모든 스킬카드.
 
     // Start is called before the first frame update
     void Start()
@@ -46,6 +51,16 @@ public class BattleSceneManager : MonoBehaviour
             Character characterComponent = instance.GetComponent<Character>();
             characterComponent.Init(this, battleData.characters[i], battleData.characterStats[i]);
             CharactersActive.Add(characterComponent);
+        }
+
+        // 스킬카드 덱 구성 & 최대 3장 드로우
+        foreach(int i in Enumerable.Range(0, CharactersActive.Count).OrderBy(x => Random.Range(0,1)))
+        {
+            skillCardDeck.AddLast(CharactersActive[i]);
+        }
+        for(int i=0; i< Mathf.Min(skillCardDeck.Count, 3); i++)
+        {
+            DrawSkillCard();
         }
 
         // 게임루프 수행
@@ -75,6 +90,44 @@ public class BattleSceneManager : MonoBehaviour
         }
     }
 
+    void DrawSkillCard()
+    {
+        skillCardHand.Add(skillCardDeck.First.Value);
+        skillCardDeck.RemoveFirst();
+    }
+
+    void RemoveSkillCardFromDeck(Character toRemove)
+    {
+        // 삭제할 카드가 패에 있다면, 삭제하고 (가능하다면) 드로우
+        if(skillCardHand.Remove(toRemove))
+        {
+            if(skillCardDeck.Count > 0)
+            {
+                DrawSkillCard();
+            }
+        }
+        else
+        {
+            skillCardDeck.Remove(toRemove);
+        }
+    }
+
+    public void UseSkillCard(int index)
+    {
+        // EX 스킬 사용
+        if(skillCardHand.Count <= index)
+        {
+            Debug.LogError("해당 위치에는 스킬카드가 없음!");
+            return;
+        }
+        Character character = skillCardHand[index];
+        character.exSkillTrigger = true;
+
+        // 스킬 카드를 덱의 맨 밑으로 넣기
+        skillCardHand.Remove(character);
+        skillCardDeck.AddLast(character);
+    }
+
     // Tick 안의 foreach에서 엔티티가 삭제/추가되면 안되므로
     // 삭제해야 할 엔티티들은 Tick 후에 따로 삭제
     void RemoveInactiveEntities()
@@ -90,9 +143,9 @@ public class BattleSceneManager : MonoBehaviour
     /// <summary>
     /// 아군 사망 시 이벤트
     /// </summary>
-    public void OnCharacterDie()
+    public void OnCharacterDie(Character deadCharacter)
     {
-
+        RemoveSkillCardFromDeck(deadCharacter);
     }
 
     /// <summary>

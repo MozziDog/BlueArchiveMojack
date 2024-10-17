@@ -45,13 +45,16 @@ public class Character : MonoBehaviour
     public int maxAmmo = 15;
     public int curAmmo;
     public bool usingSomeSkill;     // 스킬 사용 중 이동 중지 테스트용
+    public bool exSkillTrigger;
     public IAutoSkillCheck normalSkillCondition;
+    public GameObject BulletPrefab;
 
     [Title("행동 관련 프레임 정보")]
     [SerializeField, ReadOnly] int curActionFrame;
     public int attackDurationFrame;
-    public int normalSkillDurationFrame;
     public int reloadDurationFrame;
+    public int normalSkillDurationFrame;
+    public int exSkillDurationFrame;
 
     [Title("컴포넌트 레퍼런스")]
     public PathFinder pathFinder;
@@ -91,6 +94,12 @@ public class Character : MonoBehaviour
 
     protected BehaviorTree BuildBehaviorTree()
     {
+        // EX 스킬 (최우선 순위)
+            Conditional isExSkillTriggerd = new Conditional(() => { return exSkillTrigger; });
+            BehaviorAction useExSkill = new BehaviorAction(UseExSkill);
+        BehaviorNode checkAndUseExSkill = new StatefulSequence(isExSkillTriggerd, useExSkill);
+        BehaviorNode subTree_ExSkill = new DecoratorInverter(checkAndUseExSkill);
+
         // 다음 웨이브 스폰까지 기다리기
             Conditional isNoEnemy = new Conditional(() => { return battleSceneManager.EnemiesActive.Count <= 0; });
             BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
@@ -111,9 +120,9 @@ public class Character : MonoBehaviour
             // 이동
                 BehaviorAction getNextDest = new BehaviorAction(GetNextDest);
                 BehaviorAction moveStart = new BehaviorAction(MoveStart);
-                BehaviorAction moveIng = new BehaviorAction(MoveIng);
+                BehaviorAction moveDoing = new BehaviorAction(MoveDoing);
                 BehaviorAction moveEnd = new BehaviorAction(MoveEnd);
-            BehaviorNode subTree_Move = new StatefulSequence(getNextDest, moveStart, moveIng, moveEnd);
+            BehaviorNode subTree_Move = new StatefulSequence(getNextDest, moveStart, moveDoing, moveEnd);
 
             // 재장전
                 Conditional needToReload = new Conditional(() => { return curAmmo <= 0; });
@@ -126,12 +135,15 @@ public class Character : MonoBehaviour
                 Conditional isNotHitEnough = new Conditional(()=> { return recentHit < 20; });
                 Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return curAmmo > 0; });
                 BehaviorAction attack = new BehaviorAction(Attack);
-            BehaviorNode basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
-        StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, subTree_Move, subTree_Reload, basicAttack);
+            BehaviorNode subTree_basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
+        StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, subTree_Move, subTree_Reload, subTree_basicAttack);
+
+        // EX 스킬을 제외한 나머지
+        BehaviorNode baseCharacterAI = new StatefulSequence(waitUntilEnemySpawn, moveToNextWave, combat);
 
         // 루트
         BehaviorTree tree = new BehaviorTree();
-        tree.Root = new StatefulSequence(waitUntilEnemySpawn, moveToNextWave, combat);
+        tree.Root = new Sequence(subTree_ExSkill, baseCharacterAI);
         return tree;
     }
 
@@ -276,7 +288,7 @@ public class Character : MonoBehaviour
         return BehaviorResult.Running;
     }
 
-    BehaviorResult MoveIng()
+    BehaviorResult MoveDoing()
     {
         // MoveIng 종료 조건 판단
         if(!isObstacleJumping)
@@ -375,36 +387,6 @@ public class Character : MonoBehaviour
         }
     }
 
-    BehaviorResult Reload()
-    {
-        curActionFrame++;
-        if(curActionFrame >= reloadDurationFrame)
-        {
-            curActionFrame = 0;
-            curAmmo = 15;
-            Debug.Log("재장전");
-            return BehaviorResult.Success;
-        }
-        return BehaviorResult.Running;
-    }
-
-    BehaviorResult UseNormalSkill()
-    {
-        curActionFrame ++;
-        if(curActionFrame >= normalSkillDurationFrame)
-        {
-            curActionFrame = 0;
-            normalSkillCondition.ResetSkillCondition();
-            Debug.Log("기본 스킬 사용 종료");
-            return BehaviorResult.Success;
-        }
-        curActionFrame++;
-        Debug.Log("기본 스킬 사용 중");
-        return BehaviorResult.Running;
-    }
-
-    public GameObject BulletPrefab;
-
     BehaviorResult Attack()
     {
         if (currentTarget == null || !currentTarget.isAlive)
@@ -436,6 +418,48 @@ public class Character : MonoBehaviour
         }
         return BehaviorResult.Running;
     }
+
+    BehaviorResult Reload()
+    {
+        curActionFrame++;
+        if(curActionFrame >= reloadDurationFrame)
+        {
+            curActionFrame = 0;
+            curAmmo = 15;
+            Debug.Log("재장전");
+            return BehaviorResult.Success;
+        }
+        return BehaviorResult.Running;
+    }
+
+    BehaviorResult UseExSkill()
+    {
+        curActionFrame++;
+        if(curActionFrame >= exSkillDurationFrame)
+        {
+            curActionFrame = 0;
+            exSkillTrigger = false;
+            Debug.Log("Ex 스킬 사용 종료");
+            return BehaviorResult.Success;
+        }
+        Debug.Log("Ex 스킬 사용 중");
+        return BehaviorResult.Running;
+    }
+
+    BehaviorResult UseNormalSkill()
+    {
+        curActionFrame++;
+        if(curActionFrame >= normalSkillDurationFrame)
+        {
+            curActionFrame = 0;
+            normalSkillCondition.ResetSkillCondition();
+            Debug.Log("기본 스킬 사용 종료");
+            return BehaviorResult.Success;
+        }
+        Debug.Log("기본 스킬 사용 중");
+        return BehaviorResult.Running;
+    }
+
 
     public void TakeDamage(AttackType attackType, int dmg)
     {
