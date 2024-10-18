@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logic;
 
 public class SkillCardUI : MonoBehaviour
 {

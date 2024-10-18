@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1900126608512869852}
   - component: {fileID: 1900126608512869840}
-  - component: {fileID: 2214004237992574099}
   - component: {fileID: 1610316902286220955}
   - component: {fileID: 823090725880857749}
   m_Layer: 0
@@ -58,58 +57,6 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 5
   m_ObstacleAvoidanceType: 4
---- !u!114 &2214004237992574099
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1900126608512869841}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29d9fd83cc4db654db788b63f19b3cb8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Name: 
-  isAlive: 1
-  AttackType: 2
-  ArmorType: 2
-  normalSkillConditionData:
-    conditionType: 1
-    argument: 300
-  _maxHP: 0
-  currentHP: 0
-  attackPower: 0
-  defensePower: 0
-  healPower: 0
-  moveSpeed: 5
-  CostRegen: 0
-  coveringObstacle: {fileID: 0}
-  isDoingCover: 0
-  moveStartFrame: 0
-  moveEndFrame: 13
-  obstacleJumpSpeed: 3
-  moveDest: {x: 0, y: 0, z: 0}
-  destObstacle: {fileID: 0}
-  sightRange: 13
-  attackRange: 13
-  distToEnemy: 1
-  positioningAttackRangeRatio: 0.88
-  recentHit: 0
-  _isObstacleJumping: 0
-  currentTarget: {fileID: 0}
-  _maxAmmo: 15
-  _curAmmo: 0
-  ExSkillCost: 0
-  exSkillTrigger: 0
-  BulletPrefab: {fileID: 3891039622126859496, guid: c052015df06085948ab20a7c1c549d6c, type: 3}
-  curActionFrame: 0
-  attackDurationFrame: 17
-  reloadDurationFrame: 40
-  normalSkillDurationFrame: 50
-  exSkillDurationFrame: 100
-  pathFinder: {fileID: 0}
-  battleSceneManager: {fileID: 0}
 --- !u!114 &1610316902286220955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -135,7 +82,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb1d35005da9e1d48be7147bb3637f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterLogic: {fileID: 0}
+  CharacterLogic:
+    Name: 
+    isAlive: 1
+    isAiActive: 1
+    AttackType: 0
+    ArmorType: 0
+    _maxHP: 0
+    currentHP: 0
+    attackPower: 0
+    defensePower: 0
+    healPower: 0
+    moveSpeed: 0
+    CostRegen: 0
+    coveringObstacle: {fileID: 0}
+    isDoingCover: 0
+    moveStartFrame: 0
+    moveEndFrame: 13
+    obstacleJumpSpeed: 0
+    destObstacle: {fileID: 0}
+    sightRange: 13
+    attackRange: 7
+    distToEnemy: 10
+    positioningAttackRangeRatio: 0.88
+    recentHit: 0
+    _isObstacleJumping: 0
+    _maxAmmo: 15
+    _curAmmo: 0
+    ExSkillCost: 0
+    exSkillTrigger: 0
+    curActionFrame: 0
+    exSkillFrame: 0
+    attackDurationFrame: 0
+    reloadDurationFrame: 0
+    pathFinder: {fileID: 0}
+    battleSceneManager: {fileID: 0}
   damageNumberPrefab: {fileID: 3122652536334177565, guid: 95a74633689866e4d8088eda5343ce2d, type: 3}
 --- !u!1 &2467656742192138509
 GameObject:

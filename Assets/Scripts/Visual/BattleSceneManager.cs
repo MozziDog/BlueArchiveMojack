@@ -4,27 +4,36 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Linq;
 using System;
+using Logic;
 
 public class BattleSceneManager : MonoBehaviour
 {
     [Title("전투 초기화 정보")]
     public BattleData BattleData;
     public CharacterPrefabDatabase CharacterViewDatabase;
-    public List<Transform> SpawnPoint;
+    public GameObject EnemyPrefab;
+    public GameObject BulletPrefab;
+    public List<Position2> SpawnPoint;
 
     [Title("전투 씬 상태")]
     [SerializeField] int _logicTickPerSecond = 30;
     public int BaseLogicTickrate = 30;
     public BattleSceneState BattleState;
 
-    [Title("관리중인 엔티티들")]
-    public CharacterGroup CharactersActive;      // 아군
+    [Title("관리중인 엔티티들(로직)")]
+    public CharacterGroup CharactersLogic;      // 아군
     List<Character> _charactersToRemove = new List<Character>();
-    public CharacterGroup EnemiesActive;          // 적군
+    public CharacterGroup EnemiesLogic;          // 적군
     List<Character> _enemiesToRemove = new List<Character>();
-    public List<Obstacle> Obstacles;
-    public List<Bullet> BulletsActive;
+    public List<Obstacle> Obstacles = new List<Obstacle>();
+    public List<Bullet> BulletsActive = new List<Bullet>();
     List<Bullet> _bulletsToRemove = new List<Bullet>();
+
+    [Title("관리중인 엔티티들(비주얼)")]
+    public List<CharacterVisual> CharacterVisual;
+    public List<CharacterVisual> EnemyVisual;
+    public List<BulletVisual> bulletVisual;
+    public List<ObstacleVisual> obstacleVisual;
 
     [Title("EX 스킬 관련")]
     public int ExCostCount = 0;         // 현재 코스트 갯수. Ex 스킬 사용에 필요.
@@ -34,11 +43,16 @@ public class BattleSceneManager : MonoBehaviour
     public List<Character> skillCardHand = new List<Character>();       // 패. 최대 3장
     public LinkedList<Character> skillCardDeck = new LinkedList<Character>(); // 덱. 패에 들고 있지 않은 모든 스킬카드.
 
+    [Title("카메라 관리")]
+    CameraTargetGroupControl cameraTargetGroup;
+
     // 전투 중 발생하는 이벤트들
     public Action OnBattleBegin;
-    public delegate void CharacterDieEvent(Character deadCharacter);
-    public CharacterDieEvent OnAllyDie;
-    public CharacterDieEvent OnEnemyDie;
+    public delegate void CharacterInstanceEvent(Character characterLogic, CharacterVisual characterVisual);
+    public CharacterInstanceEvent OnAllySpawn;
+    public CharacterInstanceEvent OnEnemySpawn;
+    public CharacterInstanceEvent OnAllyDie;
+    public CharacterInstanceEvent OnEnemyDie;
 
     void Start()
     {
@@ -57,23 +71,54 @@ public class BattleSceneManager : MonoBehaviour
         // 아군
         for(int i=0; i<battleData.characters.Count; i++)
         {
-            GameObject instance = Instantiate(CharacterViewDatabase.CharacterViews[battleData.characters[i].Name]);
-            instance.transform.position = SpawnPoint[i].position;
-            Character characterComponent = instance.GetComponent<Character>();
-            characterComponent.Init(this, battleData.characters[i], battleData.characterStats[i]);
-            CharactersActive.Add(characterComponent);
+
+            // 캐릭터(로직) 생성
+            Character characterLogic = new Character();
+
+            // 캐릭터(비주얼) 생성
+            GameObject characterVisualObject = Instantiate(CharacterViewDatabase.CharacterViews[battleData.characters[i].Name]);
+            CharacterVisual characterVisualComponent = characterVisualObject.GetComponent<CharacterVisual>();
+            characterVisualComponent.CharacterLogic = characterLogic;
+            CharacterVisual.Add(characterVisualComponent);
+
+            // TODO: 길찾기 에이전트 직접 구현한 것으로 대체
+            PathFinder pathFinder = characterVisualObject.GetComponent<PathFinder>();
+
+            // 캐릭터(로직) 나머지 초기화 진행
+            characterLogic.Init(this, battleData.characters[i], battleData.characterStats[i], pathFinder);
+            characterLogic.Position = SpawnPoint[i];
+            CharactersLogic.Add(characterLogic);
+
+            if(OnAllySpawn != null)
+            {
+                OnAllySpawn(characterLogic, characterVisualComponent);
+            }
+        }
+
+        // 적군
+        // TODO: battleData에 기록된 적 웨이브 스폰하는 것으로 대체하기
+        for(int i=0; i<EnemiesLogic.Count; i++)
+        {
+            GameObject enemyVisualObject = Instantiate(EnemyPrefab);
+            CharacterVisual enemyVisualComponent = enemyVisualObject.GetComponent<CharacterVisual>();
+            enemyVisualComponent.CharacterLogic = EnemiesLogic[i];
+
+            if(OnEnemySpawn != null)
+            {
+                OnEnemySpawn(EnemiesLogic[i], enemyVisualComponent);
+            }
         }
 
         // 코스트 회복량 산정
-        foreach(var character in CharactersActive)
+        foreach(var character in CharactersLogic)
         {
             ExCostRegen += character.CostRegen;
         }
 
         // 스킬카드 덱 구성 & 최대 3장 드로우
-        foreach(int i in Enumerable.Range(0, CharactersActive.Count).OrderBy(x => UnityEngine.Random.Range(0,1)))
+        foreach(int i in Enumerable.Range(0, CharactersLogic.Count).OrderBy(x => UnityEngine.Random.Range(0,1)))
         {
-            skillCardDeck.AddLast(CharactersActive[i]);
+            skillCardDeck.AddLast(CharactersLogic[i]);
         }
         for(int i=0; i< Mathf.Min(skillCardDeck.Count, 3); i++)
         {
@@ -82,12 +127,15 @@ public class BattleSceneManager : MonoBehaviour
         OnAllyDie += RemoveSkillCardFromDeck;
 
         // 초기화 완료 후, 게임 루프 시작 전에 이벤트 호출
-        OnBattleBegin();
+        if (OnBattleBegin != null)
+        {
+            OnBattleBegin();
+        }
 
         // 게임루프 수행
         while (BattleState == BattleSceneState.InBattle)
         {
-            if(CharactersActive.Count <= 0)
+            if(CharactersLogic.Count <= 0)
             {
                 Debug.Log("게임 오버");
                 yield break;
@@ -113,7 +161,7 @@ public class BattleSceneManager : MonoBehaviour
         }
 
         // 관리중인 객체들을 모두 틱
-        foreach(var character in CharactersActive)
+        foreach(var character in CharactersLogic)
         {
             character.Tick();
         }
@@ -129,7 +177,7 @@ public class BattleSceneManager : MonoBehaviour
         skillCardDeck.RemoveFirst();
     }
 
-    void RemoveSkillCardFromDeck(Character toRemove)
+    void RemoveSkillCardFromDeck(Character toRemove, CharacterVisual characterVisual)
     {
         // 삭제할 카드가 패에 있다면, 삭제하고 (가능하다면) 드로우
         if(skillCardHand.Remove(toRemove))
@@ -185,8 +233,7 @@ public class BattleSceneManager : MonoBehaviour
         {
             for (int i = _charactersToRemove.Count - 1; i >= 0; i--)
             {
-                CharactersActive.Remove(_charactersToRemove[i]);
-                Destroy(_charactersToRemove[i].gameObject);
+                CharactersLogic.Remove(_charactersToRemove[i]);
             }
             _charactersToRemove.Clear();
         }
@@ -194,8 +241,7 @@ public class BattleSceneManager : MonoBehaviour
         {
             for(int i = _enemiesToRemove.Count - 1; i>=0; i--)
             {
-                EnemiesActive.Remove(_enemiesToRemove[i]);
-                Destroy(_enemiesToRemove[i].gameObject);
+                EnemiesLogic.Remove(_enemiesToRemove[i]);
             }
             _enemiesToRemove.Clear();
         }
@@ -204,7 +250,6 @@ public class BattleSceneManager : MonoBehaviour
             for (int i = _bulletsToRemove.Count - 1; i >= 0; i--)
             {
                 BulletsActive.Remove(_bulletsToRemove[i]);
-                Destroy(_bulletsToRemove[i].gameObject);
             }
             _bulletsToRemove.Clear();
         }
@@ -215,19 +260,23 @@ public class BattleSceneManager : MonoBehaviour
     /// </summary>
     public void OnCharacterDie(Character deadCharacter)
     {
-        if(CharactersActive.Contains(deadCharacter))
+        if(CharactersLogic.Contains(deadCharacter))
         {
+            // 대응하는 CharacterVisual 찾기
+            CharacterVisual deadCharacterVisual = CharacterVisual.Find((ch) => { return ch.CharacterLogic == deadCharacter; });
             if (OnAllyDie != null)
             {
-                OnAllyDie(deadCharacter);
+                OnAllyDie(deadCharacter, deadCharacterVisual);
             }
             _charactersToRemove.Add(deadCharacter);
         }
-        else if(EnemiesActive.Contains(deadCharacter))
+        else if(EnemiesLogic.Contains(deadCharacter))
         {
+            // 대응하는 CharacterVisual 찾기
+            CharacterVisual deadEnemyVisual = EnemyVisual.Find((ch) => { return ch.CharacterLogic == deadCharacter; });
             if (OnEnemyDie != null)
             {
-                OnEnemyDie(deadCharacter);
+                OnEnemyDie(deadCharacter, deadEnemyVisual);
             }
             _enemiesToRemove.Add(deadCharacter);
         }
@@ -236,6 +285,11 @@ public class BattleSceneManager : MonoBehaviour
     public void AddBullet(Bullet bullet)
     {
         BulletsActive.Add(bullet);
+        
+        // 새 총알 오브젝트를 생성하고 Bullet 로직과 연결
+        GameObject bulletObject = Instantiate(BulletPrefab);
+        BulletVisual bulletVisual = bulletObject.GetComponent<BulletVisual>();
+        bulletVisual.BulletLogic = bullet;
         bullet.Init(this);
     }
 
