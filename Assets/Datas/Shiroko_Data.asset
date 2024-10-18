@@ -23,6 +23,7 @@ MonoBehaviour:
   TacticPosition: 1
   AttackType: 2
   DefenceType: 1
-  skills: []
+  skills:
+  - {fileID: 11400000, guid: 419fdeede59112c46a44f1620dffa92c, type: 2}
+  - {fileID: 11400000, guid: eff65582df93f184489c9377e6f55633, type: 2}
   EquipmentSlot: 010000000600000009000000
-  ExCost: 2
