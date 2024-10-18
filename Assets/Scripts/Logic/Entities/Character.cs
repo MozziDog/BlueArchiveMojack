@@ -203,6 +203,7 @@ namespace Logic
 
         void FindNextEnemy()
         {
+            currentTarget = null;
             float minDist = float.MaxValue;
             foreach (var enemy in battleSceneManager.EnemiesLogic)
             {

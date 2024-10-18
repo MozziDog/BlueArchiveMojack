@@ -2134,9 +2134,9 @@ MonoBehaviour:
     elements: []
   EnemiesLogic:
     elements:
-    - Name: 
+    - Name: Enemy 1
       isAlive: 1
-      isAiActive: 1
+      isAiActive: 0
       AttackType: 0
       ArmorType: 2
       _maxHP: 30000
@@ -2174,9 +2174,9 @@ MonoBehaviour:
       reloadDurationFrame: 0
       pathFinder: {fileID: 0}
       battleSceneManager: {fileID: 1568502161}
-    - Name: 
+    - Name: Enemy 2
       isAlive: 1
-      isAiActive: 1
+      isAiActive: 0
       AttackType: 0
       ArmorType: 3
       _maxHP: 30000
