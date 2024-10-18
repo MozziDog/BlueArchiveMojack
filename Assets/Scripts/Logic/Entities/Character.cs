@@ -14,7 +14,6 @@ public class Character : MonoBehaviour
     public bool isAiActive = true;  // 적군 허수아비 AI 꺼두는 용도
     public AttackType AttackType;
     public ArmorType ArmorType;
-    public AutoSkillCondition normalSkillConditionData;
 
     [Title("기본 스탯 정보")]
     [SerializeField] int _maxHP;
@@ -53,17 +52,18 @@ public class Character : MonoBehaviour
     public GameObject BulletPrefab;
 
     [Title("행동 관련 프레임 정보")]
-    [SerializeField, ReadOnly] int curActionFrame;
+    [SerializeField, ReadOnly] int curActionFrame = 0;
+    [SerializeField, ReadOnly] int exSkillFrame = 0;
     public int attackDurationFrame;
     public int reloadDurationFrame;
-    public int normalSkillDurationFrame;
-    public int exSkillDurationFrame;
 
     [Title("컴포넌트 레퍼런스")]
     public PathFinder pathFinder;
     [SerializeField] BattleSceneManager battleSceneManager;
 
     BehaviorTree _bt;
+    SkillData exSkill;
+    SkillData normalSkill;
 
     // 프로퍼티
     public bool isMoving { get; private set; }
@@ -87,16 +87,22 @@ public class Character : MonoBehaviour
         defensePower = statData.DefensePowerLevel1;
         healPower = statData.HealPowerLevel1;
         CostRegen = statData.CostRegen;
-        ExSkillCost = charData.ExCost;
 
         _curAmmo = _maxAmmo;
         currentHP = _maxHP;
+        ExSkillCost = charData.skills[0].Cost;
+
+        // 스킬 등록
+        exSkill = charData.skills[0];
+        normalSkill = charData.skills[1];
+
 
         // 일반 스킬 조건 등록
-        switch(normalSkillConditionData.conditionType)
+        AutoSkillCondition normalSkillConditionData = charData.skills[1].NormalSkillCondition;
+        switch(normalSkillConditionData.ConditionType)
         {
             case AutoSkillConditionType.Cooltime:
-                normalSkillCondition = new AutoSkillCheckCooltime(normalSkillConditionData.argument);
+                normalSkillCondition = new AutoSkillCheckCooltime(normalSkillConditionData.Argument);
                 break;
             default:
                 Debug.LogError("해당 스킬 조건은 아직 미구현됨");
@@ -124,7 +130,7 @@ public class Character : MonoBehaviour
 
         // 교전
             // 기본 스킬
-                Conditional canUseNormalSkill = new Conditional(() => { return normalSkillCondition.CanUseSkill(); });
+                Conditional canUseNormalSkill = new Conditional(CheckCanUseNormalSkill);
                 BehaviorAction useNormalSkill = new BehaviorAction(UseNormalSkill);
             BehaviorNode checkAndUseNormalSkill = new StatefulSequence(canUseNormalSkill, useNormalSkill);
             BehaviorNode subTree_NormalSkill = new DecoratorInverter(checkAndUseNormalSkill);
@@ -189,10 +195,6 @@ public class Character : MonoBehaviour
         float minDist = float.MaxValue;
         foreach(var enemy in battleSceneManager.EnemiesActive)
         {
-            if(currentTarget == null || !currentTarget.isAlive)
-            {
-                currentTarget = enemy;
-            }
             float dist = (enemy.transform.position - transform.position).magnitude;
             if (dist > sightRange)
             {
@@ -454,13 +456,46 @@ public class Character : MonoBehaviour
 
     BehaviorResult UseExSkill()
     {
-        curActionFrame++;
-        isDoingSomeAction = true;
-        if(curActionFrame >= exSkillDurationFrame)
+        // Action의 첫 프레임
+        if(exSkillFrame == 0)
         {
+            switch(exSkill.SkillRange.ConditionType)
+            {
+                case SkillTargetType.Enemy:
+                    // currentTarget을 그대로 사용
+                    break;
+                default:
+                    Debug.LogError("해당 스킬 옵션은 구현되지 않음!");
+                    break;
+            }
+        }
+
+        exSkillFrame++;
+        isDoingSomeAction = true;
+
+        // 선딜레이 끝난 타이밍: 스킬 시전
+        if(curActionFrame == exSkill.StartupFrame)
+        {
+            GameObject bulletInstance = Instantiate(BulletPrefab, transform.position, Quaternion.identity);
+            // TODO: 힐/버프 시에는 Bullet 대신 별도의 클래스로 구현하기
+            Bullet skillProjectile = bulletInstance.GetComponent<Bullet>();
+            skillProjectile.Attacker = this;
+            skillProjectile.Target = currentTarget;
+            // TODO: 투사체 공격력 설정에 EX 스킬 데이터 반영하기
+            skillProjectile.AttackPower = attackPower;
+            skillProjectile.AttackType = AttackType;
+            battleSceneManager.AddBullet(skillProjectile);
+        }
+
+        // Action의 마지막 프레임
+        if(curActionFrame >= exSkill.StartupFrame + exSkill.RecoveryFrame)
+        {
+            exSkillFrame = 0;
             curActionFrame = 0;
             isDoingSomeAction = false;
             exSkillTrigger = false;
+            currentTarget = null;       // 아군을 타겟팅한 경우 등을 고려, 스킬 종료 시 대상 재선정 필요
+
             Debug.Log("Ex 스킬 사용 종료");
             return BehaviorResult.Success;
         }
@@ -468,19 +503,60 @@ public class Character : MonoBehaviour
         return BehaviorResult.Running;
     }
 
+    bool CheckCanUseNormalSkill()
+    {
+        if(normalSkillCondition.CanUseSkill())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     BehaviorResult UseNormalSkill()
     {
+        // 일반스킬 첫 프레임
+        if(curActionFrame == 0)
+        {
+            switch(normalSkill.SkillRange.ConditionType)
+            {
+                case SkillTargetType.Enemy:
+                    // currentTarget을 그대로 사용
+                    break;
+                default:
+                    Debug.LogError("해당 스킬 옵션은 구현되지 않음!");
+                    break;
+            }
+        }
+
         curActionFrame++;
         isDoingSomeAction = true;
-        if(curActionFrame >= normalSkillDurationFrame)
+
+        // 선딜 끝났을 때
+        if(curActionFrame == normalSkill.StartupFrame)
+        {
+            GameObject bulletInstance = Instantiate(BulletPrefab, transform.position, Quaternion.identity);
+            // TODO: 힐/버프 시에는 Bullet 대신 별도의 클래스로 구현하기
+            Bullet skillProjectile = bulletInstance.GetComponent<Bullet>();
+            skillProjectile.Attacker = this;
+            skillProjectile.Target = currentTarget;
+            // TODO: 투사체 공격력 설정에 EX 스킬 데이터 반영하기
+            skillProjectile.AttackPower = attackPower;
+            skillProjectile.AttackType = AttackType;
+            battleSceneManager.AddBullet(skillProjectile);
+
+            normalSkillCondition.ResetSkillCondition();
+        }
+
+        if(curActionFrame >= normalSkill.StartupFrame + normalSkill.RecoveryFrame)
         {
             curActionFrame = 0;
             isDoingSomeAction = false;
-            normalSkillCondition.ResetSkillCondition();
             Debug.Log("기본 스킬 사용 종료");
             return BehaviorResult.Success;
         }
-        Debug.Log("기본 스킬 사용 중");
         return BehaviorResult.Running;
     }
 
