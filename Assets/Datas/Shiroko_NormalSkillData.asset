@@ -16,11 +16,12 @@ MonoBehaviour:
   Cost: 0
   NormalSkillCondition:
     ConditionType: 1
-    Argument: 15
+    Argument: 210
   SkillRange:
     ConditionType: 3
     SkillRangeType: 0
     Argument1: 1
     Argument2: 0
+  Range: 0
   StartupFrame: 30
   RecoveryFrame: 50
