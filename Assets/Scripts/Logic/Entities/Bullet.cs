@@ -8,7 +8,6 @@ public class Bullet : MonoBehaviour
     public Character Target;
     public AttackType AttackType;
     public int AttackPower;
-    public Effect AdditionalEffect;     // TODO: 특수효과 추가하기
     [SerializeField] float _projectileSpeed;
     [SerializeField] Vector3 _destPosition;  // 대상이 사라진 경우에도 총알 진행 가능하도록 대상 위치 보관
     [SerializeField] int _disappearTimeTick;
