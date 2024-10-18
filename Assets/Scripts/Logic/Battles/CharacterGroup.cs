@@ -3,49 +3,52 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public class CharacterGroup : IEnumerable<Character>
+namespace Logic
 {
-    public List<Character> elements = new List<Character>();
-
-    public int Count
+    [Serializable]
+    public class CharacterGroup : IEnumerable<Character>
     {
-        get { return elements.Count; }
-    }
+        public List<Character> elements = new List<Character>();
 
-    public Character this[int i]
-    {
-        get { return elements[i]; }
-        set { elements[i] = value; }
-    }
-
-    public void Add(Character newCharacter)
-    {
-        elements.Add(newCharacter);
-    }
-
-    public void Remove(Character deadCharacter)
-    {
-        elements.Remove(deadCharacter);
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return elements.GetEnumerator();
-    }
-
-    public IEnumerator<Character> GetEnumerator()
-    {
-        return elements.GetEnumerator();
-    }
-
-    public Vector3 GetCenterPosition()
-    {
-        Vector3 sum = Vector3.zero;
-        foreach(var ch in elements)
+        public int Count
         {
-            sum += ch.transform.position;
+            get { return elements.Count; }
         }
-        return sum / elements.Count;
+
+        public Character this[int i]
+        {
+            get { return elements[i]; }
+            set { elements[i] = value; }
+        }
+
+        public void Add(Character newCharacter)
+        {
+            elements.Add(newCharacter);
+        }
+
+        public void Remove(Character deadCharacter)
+        {
+            elements.Remove(deadCharacter);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return elements.GetEnumerator();
+        }
+
+        public IEnumerator<Character> GetEnumerator()
+        {
+            return elements.GetEnumerator();
+        }
+
+        public Position2 GetCenterPosition()
+        {
+            Position2 sum = Position2.zero;
+            foreach (var ch in elements)
+            {
+                sum += ch.Position;
+            }
+            return sum / elements.Count;
+        }
     }
 }

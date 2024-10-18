@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2710613216901731237}
   - component: {fileID: 3756260698810263916}
   - component: {fileID: 7625054232430305736}
-  - component: {fileID: 7373176628227608443}
+  - component: {fileID: 8269066620727423549}
   m_Layer: 0
   m_Name: Bullet
   m_TagString: Untagged
@@ -84,7 +84,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7373176628227608443
+--- !u!114 &8269066620727423549
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -93,14 +93,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 3891039622126859496}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 280ef84e387ba6b4193a29eabc9c5c55, type: 3}
+  m_Script: {fileID: 11500000, guid: 867d3792e466a744091ee2d2f48f6da1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Attacker: {fileID: 0}
-  Target: {fileID: 0}
-  AttackType: 0
-  AttackPower: 0
-  AdditionalEffect: {fileID: 0}
-  _projectileSpeed: 10
-  _destPosition: {x: 0, y: 0, z: 0}
-  _disappearTimeTick: 5

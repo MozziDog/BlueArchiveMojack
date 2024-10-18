@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using DamageNumbersPro;
 using UnityEngine;
+using Logic;
 
 public class CharacterVisual : MonoBehaviour
 {
-    public Character characterLogic;
+    public Character CharacterLogic;
     [SerializeField] DamageNumber damageNumberPrefab;
 
     Vector3 _positionBeforeFrame;
@@ -13,18 +14,20 @@ public class CharacterVisual : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        if(characterLogic == null)
+        if(CharacterLogic == null)
         {
-            characterLogic = GetComponent<Character>();
+            CharacterLogic = GetComponent<Character>();
         }
         _positionBeforeFrame = transform.position;
-        characterLogic.OnCharacterTakeDamage += DisplayDamageNumber;
+        CharacterLogic.OnCharacterTakeDamage += DisplayDamageNumber;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(characterLogic.isMoving)
+        transform.position = new Vector3(CharacterLogic.Position.x, 0, CharacterLogic.Position.y);
+
+        if(CharacterLogic.isMoving)
         {
             Vector3 positionCurrentFrame = transform.position;
             // (현재 위치 + 이동방향) 바라보기

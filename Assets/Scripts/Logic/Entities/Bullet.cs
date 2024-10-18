@@ -1,39 +1,53 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class Bullet : MonoBehaviour
+namespace Logic
 {
-    public Character Attacker;
-    public Character Target;
-    public AttackType AttackType;
-    public int AttackPower;
-    [SerializeField] float _projectileSpeed;
-    [SerializeField] Vector3 _destPosition;  // 대상이 사라진 경우에도 총알 진행 가능하도록 대상 위치 보관
-    [SerializeField] int _disappearTimeTick;
-
-    BattleSceneManager _battleSceneManager;
-
-    public void Init(BattleSceneManager battleInstacne)
+    public class Bullet
     {
-        _battleSceneManager = battleInstacne;
-    }
+        public Position2 Position;
+        Position2 _destPosition;  // 대상이 사라진 경우에도 총알 진행 가능하도록 대상 위치 보관
+        
+        public Character Attacker;
+        public Character Target;
+        public AttackType AttackType;
+        public int AttackPower;
+        float _projectileSpeed;
 
-    public void Tick()
-    {
-        if(Target != null)
+        BattleSceneManager _battleSceneManager;
+
+        public Action OnDestroyed;
+
+        public void Init(BattleSceneManager battleInstacne)
         {
-            _destPosition = Target.transform.position;
+            _battleSceneManager = battleInstacne;
         }
-        transform.position = Vector3.MoveTowards(transform.position, _destPosition, _projectileSpeed / _battleSceneManager.BaseLogicTickrate);
-        if(transform.position == _destPosition)
+
+        public void Tick()
         {
-            if(Target != null)
+            if (Target != null)
             {
-                Target.TakeDamage(AttackType, AttackPower);
+                _destPosition = Target.Position;
             }
-            _battleSceneManager.RemoveBullet(this);
-            gameObject.SetActive(false);
+            Position = Position2.MoveTowards(Position, _destPosition, _projectileSpeed / _battleSceneManager.BaseLogicTickrate);
+            if (Position == _destPosition)
+            {
+                if (Target != null)
+                {
+                    Target.TakeDamage(AttackType, AttackPower);
+                }
+                _battleSceneManager.RemoveBullet(this);
+            }
+        }
+
+        ~Bullet()
+        {
+            LogicDebug.Log("bullet 삭제 테스트");
+            if(OnDestroyed != null)
+            {
+                OnDestroyed();
+            }
         }
     }
 }
