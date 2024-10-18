@@ -70,23 +70,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29d9fd83cc4db654db788b63f19b3cb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Name: 
   isAlive: 1
   AttackType: 2
   ArmorType: 2
   normalSkillConditionData:
     conditionType: 1
     argument: 300
-  maxHP: 0
+  _maxHP: 0
   currentHP: 0
   attackPower: 0
   defensePower: 0
   healPower: 0
   moveSpeed: 5
-  obstacleJumpSpeed: 3
+  CostRegen: 0
   coveringObstacle: {fileID: 0}
   isDoingCover: 0
   moveStartFrame: 0
   moveEndFrame: 13
+  obstacleJumpSpeed: 3
   moveDest: {x: 0, y: 0, z: 0}
   destObstacle: {fileID: 0}
   sightRange: 13
@@ -94,11 +96,11 @@ MonoBehaviour:
   distToEnemy: 1
   positioningAttackRangeRatio: 0.88
   recentHit: 0
-  isObstacleJumping: 0
+  _isObstacleJumping: 0
   currentTarget: {fileID: 0}
-  maxAmmo: 15
-  curAmmo: 0
-  usingSomeSkill: 0
+  _maxAmmo: 15
+  _curAmmo: 0
+  ExSkillCost: 0
   exSkillTrigger: 0
   BulletPrefab: {fileID: 3891039622126859496, guid: c052015df06085948ab20a7c1c549d6c, type: 3}
   curActionFrame: 0
@@ -107,6 +109,7 @@ MonoBehaviour:
   normalSkillDurationFrame: 50
   exSkillDurationFrame: 100
   pathFinder: {fileID: 0}
+  battleSceneManager: {fileID: 0}
 --- !u!114 &1610316902286220955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,6 +136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterLogic: {fileID: 0}
+  damageNumberPrefab: {fileID: 3122652536334177565, guid: 95a74633689866e4d8088eda5343ce2d, type: 3}
 --- !u!1 &2467656742192138509
 GameObject:
   m_ObjectHideFlags: 0

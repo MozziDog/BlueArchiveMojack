@@ -29,7 +29,10 @@ public class Bullet : MonoBehaviour
         transform.position = Vector3.MoveTowards(transform.position, _destPosition, _projectileSpeed / _battleSceneManager.BaseLogicTickrate);
         if(transform.position == _destPosition)
         {
-            Target.TakeDamage(AttackType, AttackPower);
+            if(Target != null)
+            {
+                Target.TakeDamage(AttackType, AttackPower);
+            }
             _battleSceneManager.RemoveBullet(this);
             gameObject.SetActive(false);
         }

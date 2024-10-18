@@ -11,6 +11,7 @@ public class Character : MonoBehaviour
     [Title("기본 정보")]
     public string Name;
     public bool isAlive = true;
+    public bool isAiActive = true;  // 적군 허수아비 AI 꺼두는 용도
     public AttackType AttackType;
     public ArmorType ArmorType;
     public AutoSkillCondition normalSkillConditionData;
@@ -68,6 +69,10 @@ public class Character : MonoBehaviour
     public bool isMoving { get; private set; }
     public bool isDoingSomeAction { get; private set; }
     public bool CanUseExSkill { get{ return !_isObstacleJumping; } }
+
+    // 이벤트
+    public delegate void CharacterDamageEvent(int damage, bool isCritical, AttackType attackType, ArmorType armorType);
+    public CharacterDamageEvent OnCharacterTakeDamage;
 
 
     public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData)
@@ -157,6 +162,11 @@ public class Character : MonoBehaviour
     // Update is called once per frame
     public void Tick()
     {
+        if(!isAiActive)
+        {
+            return;
+        }
+
         UpdateValues();
         _bt.Behave();
     }
@@ -475,12 +485,17 @@ public class Character : MonoBehaviour
     }
 
 
-    public void TakeDamage(AttackType attackType, int dmg)
+    public void TakeDamage(AttackType attackType, int attackPower)
     {
         // TODO: 공격 계산식 수정하기
         float damageMultiplier = AttackEffectiveness.GetEffectiveness(attackType, ArmorType);
         Debug.Log($"특효 배율: {damageMultiplier}");
-        currentHP -= Mathf.RoundToInt(dmg * damageMultiplier);
+        int damage = Mathf.RoundToInt(attackPower * damageMultiplier);
+        currentHP -= damage;
+        if(OnCharacterTakeDamage != null)
+        {
+            OnCharacterTakeDamage(damage, false, attackType, ArmorType); // 현재 치명타 구현 안되어있음.
+        }
         if(currentHP <= 0)
         {
             Die();

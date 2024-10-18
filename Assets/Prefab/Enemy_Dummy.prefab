@@ -107,6 +107,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9123157022928924969}
+  - component: {fileID: 1384723418}
+  - component: {fileID: 2126815407644387395}
   m_Layer: 0
   m_Name: Enemy_Dummy
   m_TagString: Untagged
@@ -130,3 +132,69 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1384723418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9123157022928924973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d9fd83cc4db654db788b63f19b3cb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Name: 
+  isAlive: 1
+  AttackType: 1
+  ArmorType: 2
+  normalSkillConditionData:
+    conditionType: 0
+    argument: 0
+  _maxHP: 0
+  currentHP: 3000
+  attackPower: 0
+  defensePower: 10
+  healPower: 0
+  moveSpeed: 0
+  CostRegen: 0
+  coveringObstacle: {fileID: 0}
+  isDoingCover: 0
+  moveStartFrame: 0
+  moveEndFrame: 13
+  obstacleJumpSpeed: 0
+  moveDest: {x: 0, y: 0, z: 0}
+  destObstacle: {fileID: 0}
+  sightRange: 13
+  attackRange: 7
+  distToEnemy: 10
+  positioningAttackRangeRatio: 0.88
+  recentHit: 0
+  _isObstacleJumping: 0
+  currentTarget: {fileID: 0}
+  _maxAmmo: 15
+  _curAmmo: 0
+  ExSkillCost: 0
+  exSkillTrigger: 0
+  BulletPrefab: {fileID: 0}
+  curActionFrame: 0
+  attackDurationFrame: 0
+  reloadDurationFrame: 0
+  normalSkillDurationFrame: 0
+  exSkillDurationFrame: 0
+  pathFinder: {fileID: 0}
+  battleSceneManager: {fileID: 0}
+--- !u!114 &2126815407644387395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9123157022928924973}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb1d35005da9e1d48be7147bb3637f77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterLogic: {fileID: 1384723418}
+  damageNumberPrefab: {fileID: 3122652536334177565, guid: 95a74633689866e4d8088eda5343ce2d, type: 3}
