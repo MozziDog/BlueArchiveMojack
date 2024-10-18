@@ -502,7 +502,7 @@ public class Character : MonoBehaviour
         isDoingSomeAction = true;
 
         // 선딜레이 끝난 타이밍: 스킬 시전
-        if(curActionFrame == exSkill.StartupFrame)
+        if(exSkillFrame == exSkill.StartupFrame)
         {
             GameObject bulletInstance = Instantiate(BulletPrefab, transform.position, Quaternion.identity);
             // TODO: 힐/버프 시에는 Bullet 대신 별도의 클래스로 구현하기
@@ -516,7 +516,7 @@ public class Character : MonoBehaviour
         }
 
         // Action의 마지막 프레임
-        if(curActionFrame >= exSkill.StartupFrame + exSkill.RecoveryFrame)
+        if(exSkillFrame >= exSkill.StartupFrame + exSkill.RecoveryFrame)
         {
             exSkillFrame = 0;
             curActionFrame = 0;
