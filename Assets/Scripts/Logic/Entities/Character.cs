@@ -399,9 +399,37 @@ public class Character : MonoBehaviour
         if (currentTarget != null) return BehaviorResult.Success;
         else
         {
-            pathFinder.CalculatePath(transform.position + Vector3.forward * 3);
-            pathFinder.FollowPath(moveSpeed / battleSceneManager.BaseLogicTickrate);
-            Debug.Log("Move to next wave");
+            // 엄폐물 뛰어넘기 조건
+            if(!_isObstacleJumping && pathFinder.isOnOffMeshLink)
+            {
+                _isObstacleJumping = true;
+                // 뛰어넘는 중에는 다른 캐릭터가 엄폐물 뒤에서 기다리는 상황을 방지하기 위해 OffMeshLink 비활성화
+                occupyinngObstacle = pathFinder.GetOccupyingObstacle();
+                occupyinngObstacle.isOccupied = true;
+            }
+
+            // 이동 속도 조절을 위해 장애물 뛰어넘기는 수동으로 진행
+            if(_isObstacleJumping)
+            {
+                Debug.Log("장애물 극복 중");
+                Vector3 jumpEndPos = pathFinder.GetObstacleJumpEndPos();
+                transform.position = Vector3.MoveTowards(transform.position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.BaseLogicTickrate);
+                if ((transform.position - jumpEndPos).magnitude < 0.1f)
+                {
+                    Debug.Log("장애물 극복 완료");
+                    _isObstacleJumping = false;
+                    occupyinngObstacle.isOccupied = false;
+                    pathFinder.CompleteObstacleJump();
+                }
+            }
+            // 앞에 뛰어넘을 장애물이 없다면, 단순 전방으로 이동
+            else
+            {
+                pathFinder.CalculatePath(transform.position + Vector3.forward * 3);
+                pathFinder.FollowPath(moveSpeed / battleSceneManager.BaseLogicTickrate);
+                Debug.Log("Move to next wave");
+            }
+
             return BehaviorResult.Running;
         }
     }
