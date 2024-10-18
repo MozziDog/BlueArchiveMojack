@@ -39,6 +39,7 @@ public class AutoSkillCheckCooltime : IAutoSkillCheck
 
     public void ResetSkillCondition()
     {
+        _skillAvailable = false;
         _cooldownCoroutine = CooldownCoroutine();
     }
 }

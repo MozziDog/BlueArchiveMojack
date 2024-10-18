@@ -152,8 +152,9 @@ public class Character : MonoBehaviour
                 Conditional isEnemyCloseEnough = new Conditional(() => { return distToEnemy < attackRange; });
                 Conditional isNotHitEnough = new Conditional(()=> { return recentHit < 20; });
                 Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return _curAmmo > 0; });
+                BehaviorNode cannotUseNormalSkill = new DecoratorInverter(canUseNormalSkill);
                 BehaviorAction attack = new BehaviorAction(Attack);
-            BehaviorNode subTree_basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, attack);
+            BehaviorNode subTree_basicAttack = new Sequence(isEnemyCloseEnough, isNotHitEnough, isHaveEnoughBulletInMagazine, cannotUseNormalSkill, attack);
         StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, subTree_Move, subTree_Reload, subTree_basicAttack);
 
         // EX 스킬을 제외한 나머지
@@ -348,7 +349,6 @@ public class Character : MonoBehaviour
         // 이동 속도 조절을 위해 장애물 뛰어넘기는 수동으로 진행
         if(_isObstacleJumping)
         {
-            Debug.Log("장애물 극복 중");
             Vector3 jumpEndPos = pathFinder.GetObstacleJumpEndPos();
             transform.position = Vector3.MoveTowards(transform.position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.BaseLogicTickrate);
             if ((transform.position - jumpEndPos).magnitude < 0.1f)
@@ -362,8 +362,6 @@ public class Character : MonoBehaviour
         else
         {
             // 이동 수행
-            Debug.Log("그냥 걷기");
-
             float stepLength = moveSpeed / battleSceneManager.BaseLogicTickrate;
             pathFinder.CalculatePath(moveDest);
             pathFinder.FollowPath(stepLength);
@@ -510,7 +508,7 @@ public class Character : MonoBehaviour
             skillProjectile.Attacker = this;
             skillProjectile.Target = currentTarget;
             // TODO: 투사체 공격력 설정에 EX 스킬 데이터 반영하기
-            skillProjectile.AttackPower = attackPower;
+            skillProjectile.AttackPower = attackPower * 10;
             skillProjectile.AttackType = AttackType;
             battleSceneManager.AddBullet(skillProjectile);
         }
@@ -571,7 +569,7 @@ public class Character : MonoBehaviour
             skillProjectile.Attacker = this;
             skillProjectile.Target = currentTarget;
             // TODO: 투사체 공격력 설정에 EX 스킬 데이터 반영하기
-            skillProjectile.AttackPower = attackPower;
+            skillProjectile.AttackPower = attackPower * 2;
             skillProjectile.AttackType = AttackType;
             battleSceneManager.AddBullet(skillProjectile);
 

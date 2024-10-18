@@ -39,7 +39,6 @@ public class PathFinder : MonoBehaviour
 
     public void FollowPath(float stepLength)
     {
-        Debug.Log($"stepLength: {stepLength}");
         Vector3 charPosition = transform.position;
         for(int i=0; i<path.corners.Length; i++)
         {
