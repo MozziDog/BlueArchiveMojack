@@ -18,7 +18,7 @@ public class CharacterData : ScriptableObject       // 임시로 ScriptableObjec
     public WeaponType WeaponType;
     public TacticPosition TacticPosition;   // front, middle or back
     public AttackType AttackType;
-    public ArmorType DefenceType;
+    public ArmorType ArmorType;
 
     public List<SkillData> skills;
     public List<EquipmentCategory> EquipmentSlot;

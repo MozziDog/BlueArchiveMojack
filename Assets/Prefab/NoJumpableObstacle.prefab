@@ -82,7 +82,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c00376c17ac068743bacc610cc635a98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CoveringPoint:
+  CoveringPointTransform:
   - {fileID: 4575785272658297496}
   - {fileID: 4575785273615585855}
   offMeshLink: {fileID: 4575785273181448645}

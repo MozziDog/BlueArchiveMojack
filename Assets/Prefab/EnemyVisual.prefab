@@ -147,8 +147,8 @@ MonoBehaviour:
     Name: 
     isAlive: 1
     isAiActive: 1
-    AttackType: 0
-    ArmorType: 0
+    AttackType: 1
+    ArmorType: 2
     _maxHP: 0
     currentHP: 0
     attackPower: 0
@@ -158,6 +158,12 @@ MonoBehaviour:
     CostRegen: 0
     coveringObstacle: {fileID: 0}
     isDoingCover: 0
+    Position:
+      x: 0
+      y: 0
+    moveDest:
+      x: 0
+      y: 0
     moveStartFrame: 0
     moveEndFrame: 13
     obstacleJumpSpeed: 0

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace Logic
 {
+    [Serializable]
     public class Bullet
     {
         public Position2 Position;
@@ -13,11 +14,11 @@ namespace Logic
         public Character Target;
         public AttackType AttackType;
         public int AttackPower;
-        float _projectileSpeed;
+        public float ProjectileSpeed;
 
         BattleSceneManager _battleSceneManager;
 
-        public Action OnDestroyed;
+        public Action OnExpired;
 
         public void Init(BattleSceneManager battleInstacne)
         {
@@ -30,23 +31,24 @@ namespace Logic
             {
                 _destPosition = Target.Position;
             }
-            Position = Position2.MoveTowards(Position, _destPosition, _projectileSpeed / _battleSceneManager.BaseLogicTickrate);
+            Position = Position2.MoveTowards(Position, _destPosition, ProjectileSpeed / _battleSceneManager.BaseLogicTickrate);
             if (Position == _destPosition)
             {
                 if (Target != null)
                 {
                     Target.TakeDamage(AttackType, AttackPower);
                 }
-                _battleSceneManager.RemoveBullet(this);
+                Expire();
             }
         }
 
-        ~Bullet()
+        void Expire()
         {
             LogicDebug.Log("bullet 삭제 테스트");
-            if(OnDestroyed != null)
+            _battleSceneManager.RemoveExpiredBullet(this);
+            if(OnExpired != null)
             {
-                OnDestroyed();
+                OnExpired();
             }
         }
     }

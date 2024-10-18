@@ -82,11 +82,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c00376c17ac068743bacc610cc635a98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CoveringPoint:
+  CoveringPointTransform:
   - {fileID: 3613835360358526816}
   - {fileID: 3613835361282392007}
   offMeshLink: {fileID: 3613835360911017021}
   canJumpOver: 1
+  _isOccupied: 0
 --- !u!208 &3613835360911017016
 NavMeshObstacle:
   m_ObjectHideFlags: 0

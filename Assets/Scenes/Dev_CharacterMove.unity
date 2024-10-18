@@ -2117,6 +2117,7 @@ MonoBehaviour:
   CharacterViewDatabase: {fileID: 11400000, guid: 272b3fa63853d8d43a0f58bd4df3abe2, type: 2}
   EnemyPrefab: {fileID: 9123157022928924973, guid: 90f25b77c0b56784c986d0228507137f, type: 3}
   BulletPrefab: {fileID: 3891039622126859496, guid: c052015df06085948ab20a7c1c549d6c, type: 3}
+  PathFinderPrefab: {fileID: 7724079371907751705, guid: e60cc3868b333e545bcffe28df42f214, type: 3}
   SpawnPoint:
   - x: 0
     y: -3
@@ -2137,9 +2138,9 @@ MonoBehaviour:
       isAlive: 1
       isAiActive: 1
       AttackType: 0
-      ArmorType: 0
-      _maxHP: 0
-      currentHP: 0
+      ArmorType: 2
+      _maxHP: 30000
+      currentHP: 30000
       attackPower: 0
       defensePower: 0
       healPower: 0
@@ -2172,14 +2173,14 @@ MonoBehaviour:
       attackDurationFrame: 0
       reloadDurationFrame: 0
       pathFinder: {fileID: 0}
-      battleSceneManager: {fileID: 0}
+      battleSceneManager: {fileID: 1568502161}
     - Name: 
       isAlive: 1
       isAiActive: 1
       AttackType: 0
-      ArmorType: 0
-      _maxHP: 0
-      currentHP: 0
+      ArmorType: 3
+      _maxHP: 30000
+      currentHP: 30000
       attackPower: 0
       defensePower: 0
       healPower: 0
@@ -2212,12 +2213,12 @@ MonoBehaviour:
       attackDurationFrame: 0
       reloadDurationFrame: 0
       pathFinder: {fileID: 0}
-      battleSceneManager: {fileID: 0}
+      battleSceneManager: {fileID: 1568502161}
   Obstacles:
   - {fileID: 1410396192}
   - {fileID: 200553190}
   - {fileID: 761377780}
-  - {fileID: 3613835360427442536}
+  BulletsActive: []
   CharacterVisual: []
   EnemyVisual: []
   bulletVisual: []
@@ -2787,10 +2788,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: JumpableObstacle
       objectReference: {fileID: 0}
-    - target: {fileID: 3613835360911016967, guid: adee56418d5ae2e478366ab6c449ade6, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3613835360911017020, guid: adee56418d5ae2e478366ab6c449ade6, type: 3}
       propertyPath: m_RootOrder
       value: 8
@@ -3106,78 +3103,6 @@ Transform:
   m_Father: {fileID: 1568502162}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &983641155691849902
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_RootOrder
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.60999966
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 16.06
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448644, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448703, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_Name
-      value: NoJumpableObstacle
-      objectReference: {fileID: 0}
-    - target: {fileID: 4575785273181448703, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
---- !u!114 &3613835360427442536 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4575785273181448646, guid: d3e1bb2b8eb5df541a203280c7a38114, type: 3}
-  m_PrefabInstance: {fileID: 983641155691849902}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c00376c17ac068743bacc610cc635a98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &3613835360983643864
 PrefabInstance:
   m_ObjectHideFlags: 0

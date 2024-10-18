@@ -24,4 +24,4 @@ MonoBehaviour:
     Argument2: 0
   Range: 0
   StartupFrame: 30
-  RecoveryFrame: 50
+  RecoveryFrame: 30
