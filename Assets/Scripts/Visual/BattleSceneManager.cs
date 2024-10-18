@@ -13,6 +13,7 @@ public class BattleSceneManager : MonoBehaviour
     public CharacterPrefabDatabase CharacterViewDatabase;
     public GameObject EnemyPrefab;
     public GameObject BulletPrefab;
+    public GameObject PathFinderPrefab;
     public List<Position2> SpawnPoint;
 
     [Title("전투 씬 상태")]
@@ -53,6 +54,8 @@ public class BattleSceneManager : MonoBehaviour
     public CharacterInstanceEvent OnEnemySpawn;
     public CharacterInstanceEvent OnAllyDie;
     public CharacterInstanceEvent OnEnemyDie;
+    public delegate void BulletInstacneEvent(Bullet bulletLogic, BulletVisual bulletVisual);
+    public BulletInstacneEvent OnBulletExpired;
 
     void Start()
     {
@@ -71,23 +74,25 @@ public class BattleSceneManager : MonoBehaviour
         // 아군
         for(int i=0; i<battleData.characters.Count; i++)
         {
-
             // 캐릭터(로직) 생성
             Character characterLogic = new Character();
 
             // 캐릭터(비주얼) 생성
             GameObject characterVisualObject = Instantiate(CharacterViewDatabase.CharacterViews[battleData.characters[i].Name]);
             CharacterVisual characterVisualComponent = characterVisualObject.GetComponent<CharacterVisual>();
-            characterVisualComponent.CharacterLogic = characterLogic;
             CharacterVisual.Add(characterVisualComponent);
 
+            // PathFinder 가져오기
             // TODO: 길찾기 에이전트 직접 구현한 것으로 대체
-            PathFinder pathFinder = characterVisualObject.GetComponent<PathFinder>();
+            PathFinder pathFinder = characterVisualObject.GetComponentInChildren<PathFinder>();
 
-            // 캐릭터(로직) 나머지 초기화 진행
+            // 나머지 초기화 진행
+            pathFinder.CharacterLogic = characterLogic;
+            characterVisualComponent.CharacterLogic = characterLogic;
             characterLogic.Init(this, battleData.characters[i], battleData.characterStats[i], pathFinder);
             characterLogic.Position = SpawnPoint[i];
             CharactersLogic.Add(characterLogic);
+
 
             if(OnAllySpawn != null)
             {
@@ -228,7 +233,6 @@ public class BattleSceneManager : MonoBehaviour
     /// </summary>
     void RemoveInactiveEntities()
     {
-        // 순회에 문제 없도록 인덱스 뒤쪽부터 삭제
         if (_charactersToRemove.Count > 0)
         {
             for (int i = _charactersToRemove.Count - 1; i >= 0; i--)
@@ -258,7 +262,7 @@ public class BattleSceneManager : MonoBehaviour
     /// <summary>
     /// 아군 적군 상관없이 임의의 캐릭터 사망 시 이벤트
     /// </summary>
-    public void OnCharacterDie(Character deadCharacter)
+    public void RemoveDeadCharacter(Character deadCharacter)
     {
         if(CharactersLogic.Contains(deadCharacter))
         {
@@ -293,8 +297,14 @@ public class BattleSceneManager : MonoBehaviour
         bullet.Init(this);
     }
 
-    public void RemoveBullet(Bullet bullet)
+    public void RemoveExpiredBullet(Bullet expiredBullet)
     {
-        _bulletsToRemove.Add(bullet);
+        // 대응하는 bulletVisual 찾기
+        BulletVisual expiredBulletVisual = bulletVisual.Find((bu) => { return bu.BulletLogic == expiredBullet; });
+        if(OnBulletExpired != null)
+        {
+            OnBulletExpired(expiredBullet, expiredBulletVisual);
+        }
+        _bulletsToRemove.Add(expiredBullet);
     }
 }

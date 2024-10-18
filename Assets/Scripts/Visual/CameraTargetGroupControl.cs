@@ -14,7 +14,6 @@ public class CameraTargetGroupControl : MonoBehaviour
     {
         battleManager.OnAllySpawn += AddCameraTargetGroupElement;
         battleManager.OnAllyDie += RemoveCameraTargetGroupElement;
-        battleManager.OnEnemyDie += RemoveCameraTargetGroupElement;
     }
     
     void AddCameraTargetGroupElement(Character newCharacter, CharacterVisual characterVisual)

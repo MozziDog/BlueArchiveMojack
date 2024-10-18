@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu()]
+[Serializable]
 public class SkillData : ScriptableObject
 {
     public SkillType SkillType;

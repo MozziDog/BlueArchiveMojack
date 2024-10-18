@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using AI;
 using Sirenix.OdinInspector;
 
@@ -50,13 +51,14 @@ namespace Logic
         public int _curAmmo;
         public int ExSkillCost;
         public bool exSkillTrigger;
-        public IAutoSkillCheck normalSkillCondition;
+        // public IAutoSkillCheck normalSkillCondition;
+        public AutoSkillCheckCooltime normalSkillCondition;
 
         [Title("행동 관련 프레임 정보")]
         [ReadOnly] public int curActionFrame = 0;
         [ReadOnly] public int exSkillFrame = 0;
-        public int attackDurationFrame;
-        public int reloadDurationFrame;
+        public int attackDurationFrame = 17;
+        public int reloadDurationFrame = 40;
 
         [Title("컴포넌트 레퍼런스")]
         public PathFinder pathFinder;
@@ -74,7 +76,8 @@ namespace Logic
         // 이벤트
         public delegate void CharacterDamageEvent(int damage, bool isCritical, AttackType attackType, ArmorType armorType);
         public CharacterDamageEvent OnCharacterTakeDamage;
-        public Action OnDestroyed;
+        public Action OnDie;
+        public Action OnReload;
 
 
         public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData, PathFinder pathFinder)
@@ -85,10 +88,15 @@ namespace Logic
 
             // 필드 초기화
             Name = charData.Name;
+            this.AttackType = charData.AttackType;
+            this.ArmorType = charData.ArmorType;
+
             attackPower = statData.AttackPowerLevel1;
             defensePower = statData.DefensePowerLevel1;
             healPower = statData.HealPowerLevel1;
             CostRegen = statData.CostRegen;
+            moveSpeed = statData.MoveSpeed;
+            obstacleJumpSpeed = statData.ObstacleJumpSpeed;
 
             _curAmmo = _maxAmmo;
             currentHP = _maxHP;
@@ -293,6 +301,13 @@ namespace Logic
 
         BehaviorResult MoveStart()
         {
+            if(distToEnemy < attackRange)
+            {
+                curActionFrame = 0;
+                isMoving = false;
+                return BehaviorResult.Success;
+            }
+
             curActionFrame++;
             if (curActionFrame >= moveStartFrame)
             {
@@ -321,6 +336,7 @@ namespace Logic
                     if (destObstacle.isOccupied)
                     {
                         LogicDebug.Log("엄폐물 선점당함. 경로 재탐색");
+                        destObstacle = null;
                         return BehaviorResult.Failure;
                     }
                     if (Position2.Distance(Position, moveDest) < 0.1f)
@@ -328,6 +344,7 @@ namespace Logic
                         LogicDebug.Log("목표 엄폐물에 도달, 엄폐 수행. 이동 종료");
                         destObstacle.isOccupied = true;
                         coveringObstacle = destObstacle;
+                        destObstacle = null;
                         return BehaviorResult.Success;
                     }
                 }
@@ -364,9 +381,12 @@ namespace Logic
             else
             {
                 // 이동 수행
+                Position2 oldPosition = this.Position;
                 float stepLength = moveSpeed / battleSceneManager.BaseLogicTickrate;
                 pathFinder.CalculatePath(moveDest);
                 Position = pathFinder.FollowPath(stepLength);
+                Position2 newPosition = this.Position;
+                LogicDebug.Log($"step dist: {Position2.Distance(oldPosition, newPosition)}");
             }
             return BehaviorResult.Running;
         }
@@ -425,8 +445,16 @@ namespace Logic
                 // 앞에 뛰어넘을 장애물이 없다면, 단순 전방으로 이동
                 else
                 {
-                    pathFinder.CalculatePath(Position + Position2.forward * 3);
-                    Position = pathFinder.FollowPath(moveSpeed / battleSceneManager.BaseLogicTickrate);
+                    bool isPathFounded = pathFinder.CalculatePath(Position + Position2.forward * 3);
+                    if (isPathFounded)
+                    {
+                        Position = pathFinder.FollowPath(moveSpeed / battleSceneManager.BaseLogicTickrate);
+                    }
+                    else
+                    {
+                        LogicDebug.Log("길찾기 실패하여 무지성 앞으로 이동");
+                        Position += new Position2(0, moveSpeed / battleSceneManager.BaseLogicTickrate);
+                    }
                     LogicDebug.Log("Move to next wave");
                 }
 
@@ -457,6 +485,7 @@ namespace Logic
                 bulletComponent.Target = currentTarget;
                 bulletComponent.AttackType = AttackType;
                 bulletComponent.AttackPower = attackPower;
+                bulletComponent.ProjectileSpeed = 15f;
 
                 battleSceneManager.AddBullet(bulletComponent);
 
@@ -476,7 +505,7 @@ namespace Logic
                 curActionFrame = 0;
                 isDoingSomeAction = false;
                 _curAmmo = 15;
-                LogicDebug.Log("재장전");
+                OnReload();
                 return BehaviorResult.Success;
             }
             return BehaviorResult.Running;
@@ -512,6 +541,7 @@ namespace Logic
                 // TODO: 투사체 공격력 설정에 EX 스킬 데이터 반영하기
                 skillProjectile.AttackPower = attackPower * 10;
                 skillProjectile.AttackType = AttackType;
+                skillProjectile.ProjectileSpeed = 20f;
                 battleSceneManager.AddBullet(skillProjectile);
             }
 
@@ -573,6 +603,7 @@ namespace Logic
                 // TODO: 투사체 공격력 설정에 EX 스킬 데이터 반영하기
                 skillProjectile.AttackPower = attackPower * 2;
                 skillProjectile.AttackType = AttackType;
+                skillProjectile.ProjectileSpeed = 20f;
                 battleSceneManager.AddBullet(skillProjectile);
 
                 normalSkillCondition.ResetSkillCondition();
@@ -610,21 +641,17 @@ namespace Logic
         {
             // TODO: 후퇴 연출 필요
             isAlive = false;
-            battleSceneManager.OnCharacterDie(this);
+            battleSceneManager.RemoveDeadCharacter(this);
+            if(OnDie != null)
+            {
+                OnDie();
+            }
         }
 
         public void TakeHeal(int heal)
         {
             currentHP += heal;
             if (currentHP > _maxHP) currentHP = _maxHP;
-        }
-
-        ~Character()
-        {
-            if(OnDestroyed != null)
-            {
-                OnDestroyed();
-            }
         }
     }
 }

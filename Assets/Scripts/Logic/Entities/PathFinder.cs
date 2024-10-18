@@ -9,6 +9,8 @@ namespace Logic
     [RequireComponent(typeof(NavMeshAgent))]
     public class PathFinder : MonoBehaviour
     {
+        public Character CharacterLogic;
+
         public bool isOnOffMeshLink
         {
             get { return naviAgent.currentOffMeshLinkData.valid; }
@@ -29,19 +31,15 @@ namespace Logic
             // naviAgent.updatePosition = false;
         }
 
-        public Position2[] CalculatePath(Position2 destPos)
+        public bool CalculatePath(Position2 destPos)
         {
             if (isOnOffMeshLink)
             {
                 naviAgent.CompleteOffMeshLink();
             }
-            naviAgent.CalculatePath(new Vector3(destPos.x, 0, destPos.y), path);
-            List<Position2> posList = new List<Position2>();
-            foreach(Vector3 point in path.corners)
-            {
-                posList.Add(new Position2(point.x, point.z));
-            }
-            return posList.ToArray();
+            Position2 curPosition = CharacterLogic.Position;
+            transform.position = new Vector3(curPosition.x, 0, curPosition.y);
+            return naviAgent.CalculatePath(new Vector3(destPos.x, 0, destPos.y), path);
         }
 
         public Position2 FollowPath(float stepLength)
@@ -63,7 +61,7 @@ namespace Logic
             }
             // isOnOffMeshLink 정보를 위해 naviAgent 강제 업데이트
             naviAgent.SetPath(path);
-            naviAgent.Move(charPosition - transform.position);
+            // naviAgent.Move(charPosition - transform.position);
 
             return new Position2(charPosition.x, charPosition.z);
         }
