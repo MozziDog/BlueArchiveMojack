@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logic;
 
 public class ExSkillUI : MonoBehaviour
 {
-    [SerializeField] BattleSceneManager _battleManager;
+    [SerializeField] BattleLogic _battleManager;
     [SerializeField] TMP_Text _costCountText;
     [SerializeField] Slider _costRechargingGauge;
     [SerializeField] SkillCardUI[] _skillCardSlot;
@@ -14,7 +15,7 @@ public class ExSkillUI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame

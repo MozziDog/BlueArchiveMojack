@@ -12,16 +12,16 @@ public class CameraTargetGroupControl : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        battleManager.OnAllySpawn += AddCameraTargetGroupElement;
-        battleManager.OnAllyDie += RemoveCameraTargetGroupElement;
+        battleManager.OnCharacterVisualSpawn += AddCameraTargetGroupElement;
+        battleManager.OnCharacterVisualDestroy += RemoveCameraTargetGroupElement;
     }
-    
-    void AddCameraTargetGroupElement(Character newCharacter, CharacterVisual characterVisual)
+
+    void AddCameraTargetGroupElement(CharacterVisual characterVisual)
     {
         targetGroup.AddMember(characterVisual.transform, 1, 0);
     }
 
-    void RemoveCameraTargetGroupElement(Character character, CharacterVisual characterVisual)
+    void RemoveCameraTargetGroupElement(CharacterVisual characterVisual)
     {
         targetGroup.RemoveMember(characterVisual.transform);
     }

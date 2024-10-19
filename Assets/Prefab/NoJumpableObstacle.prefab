@@ -42,7 +42,6 @@ GameObject:
   - component: {fileID: 4575785273181448644}
   - component: {fileID: 4575785273181448646}
   - component: {fileID: 4575785273181448640}
-  - component: {fileID: 4575785273181448645}
   - component: {fileID: 4575785273181448641}
   - component: {fileID: 4575785273181448643}
   - component: {fileID: 4575785273181448642}
@@ -79,15 +78,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 4575785273181448703}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c00376c17ac068743bacc610cc635a98, type: 3}
+  m_Script: {fileID: 11500000, guid: fc2cf9571cd2ce543a663972ccc484d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CoveringPointTransform:
-  - {fileID: 4575785272658297496}
-  - {fileID: 4575785273615585855}
-  offMeshLink: {fileID: 4575785273181448645}
-  canJumpOver: 0
-  _isOccupied: 0
+  ObstacleLogic:
+    CoveringPoint: []
+    canJumpOver: 0
+  offMeshLink: {fileID: 0}
 --- !u!208 &4575785273181448640
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -104,23 +101,6 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0, z: 0}
   m_TimeToStationary: 0.5
---- !u!191 &4575785273181448645
-OffMeshLink:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4575785273181448703}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_AreaIndex: 2
-  m_AgentTypeID: 0
-  m_Start: {fileID: 4575785272658297496}
-  m_End: {fileID: 4575785273615585855}
-  m_CostOverride: 1
-  m_BiDirectional: 1
-  m_Activated: 0
-  m_AutoUpdatePositions: 1
 --- !u!65 &4575785273181448641
 BoxCollider:
   m_ObjectHideFlags: 0

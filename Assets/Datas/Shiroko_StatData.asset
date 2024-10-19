@@ -38,9 +38,9 @@ MonoBehaviour:
   CrowdControlResistRate: 0
   AmmoCount: 0
   NormalAttackSpeed: 0
-  NormalAttackRange: 0
+  NormalAttackRange: 9
   InitialRangeRate: 8800
-  MoveSpeed: 5
+  MoveSpeed: 6
   ObstacleJumpSpeed: 3
   SightRange: 0
   CostRegen: 700
