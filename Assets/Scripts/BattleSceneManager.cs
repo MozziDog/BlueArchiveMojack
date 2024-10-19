@@ -24,6 +24,9 @@ public class BattleSceneManager : MonoBehaviour
     public List<BulletVisual> BulletVisuals = new List<BulletVisual>();
 
     // 캐릭터 비주얼 추가/삭제 이벤트
+    public delegate void BattleEvent(BattleLogic battleLogic);
+    public BattleEvent OnBattleBegin;
+    public BattleEvent OnBattleEnd;
     public delegate void CharacterVisualEvent(CharacterVisual visual);
     public CharacterVisualEvent OnCharacterVisualSpawn;
     public CharacterVisualEvent OnCharacterVisualDestroy;
@@ -52,6 +55,10 @@ public class BattleSceneManager : MonoBehaviour
 
         // 전투 시작
         BattleLogic.Init(BattleData);
+        if(OnBattleBegin != null)
+        {
+            OnBattleBegin(BattleLogic);
+        }
         StartCoroutine(GameCoroutine(BattleData));
     }
 
@@ -163,6 +170,10 @@ public class BattleSceneManager : MonoBehaviour
             yield return new WaitForSeconds(1f / _logicTickPerSecond);
         }
         Debug.Log("게임 오버");
+        if(OnBattleEnd != null)
+        {
+            OnBattleEnd(BattleLogic);
+        }
         yield break;
     }
 

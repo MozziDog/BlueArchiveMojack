@@ -9,12 +9,14 @@ namespace Logic
 {
     public class BattleLogic
     {
+        // 상수
         readonly List<Position2> SpawnPoint = new List<Position2>{
             new Position2(-3, 0),
             new Position2(-1, 0),
             new Position2(1, 0),
             new Position2(3, 0)
         };
+        public readonly int ExCostGaugePerCount = 100000;     // 코스트 갯수 1개를 증가시키기 위해 필요한 충전량.
 
         [Title("전투 초기화 정보")]
         public BattleData BattleData;
@@ -39,7 +41,6 @@ namespace Logic
         [Title("EX 스킬 관련")]
         public int ExCostCount = 0;         // 현재 코스트 갯수. Ex 스킬 사용에 필요.
         public int ExCostRecharging = 0;    // 현재 코스트 충전량. 이 값이 최대치가 되면 ExCostCount가 1 증가.
-        public int ExCostGaugePerCount;     // 코스트 갯수 1개를 증가시키기 위해 필요한 충전량.
         public int ExCostRegen = 0;         // 틱 당 코스트 회복량. 캐릭터 코스트 회복량의 총합.
         public List<Character> skillCardHand = new List<Character>();       // 패. 최대 3장
         public LinkedList<Character> skillCardDeck = new LinkedList<Character>(); // 덱. 패에 들고 있지 않은 모든 스킬카드.

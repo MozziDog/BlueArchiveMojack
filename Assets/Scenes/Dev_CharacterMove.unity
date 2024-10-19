@@ -1428,11 +1428,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1054950266}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5ea2c90330694a4f8d0adbe6ec35433, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _battleManager: {fileID: 1568502161}
   _costCountText: {fileID: 1927266892}
   _costRechargingGauge: {fileID: 1253705840}
   _skillCardSlot:
