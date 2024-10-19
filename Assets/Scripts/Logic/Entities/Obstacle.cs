@@ -1,8 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.AI;
 
 /// <summary>
 /// 엄폐물.
@@ -12,16 +8,12 @@ using UnityEngine.AI;
 
 namespace Logic
 {
-    public class Obstacle : MonoBehaviour
+    [Serializable]
+    public class Obstacle
     {
-        public Transform[] CoveringPointTransform;
-
-        public Position2[] CoveringPoint {
-            get
-            {
-                return Array.ConvertAll(CoveringPointTransform, el => { return new Position2(el.position.x, el.position.z); });
-            }
-        }
+        public Position2[] CoveringPoint;
+        public bool canJumpOver;
+        bool _isOccupied = false;
 
         public bool isOccupied
         {
@@ -32,13 +24,25 @@ namespace Logic
             set
             {
                 _isOccupied = value;
-                if (canJumpOver)
-                    offMeshLink.activated = !value;
+                if(_isOccupied)
+                {
+                    if(OnObstacleOccupied != null)
+                    {
+                        OnObstacleOccupied();
+                    }
+                }
+                else
+                {
+                    if(OnObstacleUnoccupied != null)
+                    {
+                        OnObstacleUnoccupied();
+                    }
+                }
             }
         }
 
-        [SerializeField] OffMeshLink offMeshLink;
-        [SerializeField] bool canJumpOver;
-        [SerializeField] bool _isOccupied = false;
+        // 이벤트
+        public Action OnObstacleOccupied;
+        public Action OnObstacleUnoccupied;
     }
 }

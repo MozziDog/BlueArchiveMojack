@@ -9,18 +9,18 @@ namespace Logic
     {
         public Position2 Position;
         Position2 _destPosition;  // 대상이 사라진 경우에도 총알 진행 가능하도록 대상 위치 보관
-        
+
         public Character Attacker;
         public Character Target;
         public AttackType AttackType;
         public int AttackPower;
         public float ProjectileSpeed;
 
-        BattleSceneManager _battleSceneManager;
+        BattleLogic _battleSceneManager;
 
         public Action OnExpired;
 
-        public void Init(BattleSceneManager battleInstacne)
+        public void Init(BattleLogic battleInstacne)
         {
             _battleSceneManager = battleInstacne;
         }
@@ -44,7 +44,6 @@ namespace Logic
 
         void Expire()
         {
-            LogicDebug.Log("bullet 삭제 테스트");
             _battleSceneManager.RemoveExpiredBullet(this);
             if(OnExpired != null)
             {

@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using DamageNumbersPro;
 using UnityEngine;
 using Logic;
+using Unity.Mathematics;
 
 public class CharacterVisual : MonoBehaviour
 {
     public Character CharacterLogic;
-    BattleSceneManager _battleManager;
+    BattleLogic _battleManager;
     [SerializeField] DamageNumber damageNumberPrefab;
 
     Vector3 _positionBeforeFrame;
@@ -16,8 +17,11 @@ public class CharacterVisual : MonoBehaviour
     void Start()
     {
         _positionBeforeFrame = transform.position;
-        CharacterLogic.OnCharacterTakeDamage += DisplayDamageNumber;
+        CharacterLogic.OnAttack += LookAtEnemy;
+        CharacterLogic.OnUseNormalSkill += LookAtEnemy;
+        CharacterLogic.OnUseExSkill += LookAtEnemy;
         CharacterLogic.OnReload += DisplayReloadMessage;
+        CharacterLogic.OnCharacterTakeDamage += DisplayDamageNumber;
         CharacterLogic.OnDie += DestroyVisual;
     }
 
@@ -36,17 +40,30 @@ public class CharacterVisual : MonoBehaviour
         }
     }
 
+    void LookAtEnemy()
+    {
+        Character enemy = CharacterLogic.currentTarget;
+        if(enemy == null)
+        {
+            return;
+        }
+        Position2 targetLogicPosition = enemy.Position;
+        Vector3 targetWorldPosition = new Vector3(targetLogicPosition.x, 0, targetLogicPosition.y);
+        transform.LookAt(targetWorldPosition);
+    }
+
+    void DisplayReloadMessage()
+    {
+        damageNumberPrefab.Spawn(transform.position, "Reloaded");
+    }
+
     void DisplayDamageNumber(int damage, bool isCritical, AttackType attackType, ArmorType armorType)
     {
+        Debug.Log("데미지 넘버 스폰");
         if (damageNumberPrefab != null)
         {
             damageNumberPrefab.Spawn(transform.position, damage);
         }
-    }
-
-    void DisplayReloadMessage() 
-    {
-        damageNumberPrefab.Spawn(transform.position, "Reloaded");
     }
 
     void DestroyVisual()

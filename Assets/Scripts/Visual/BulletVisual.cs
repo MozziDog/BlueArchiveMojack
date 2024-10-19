@@ -6,7 +6,7 @@ using Logic;
 public class BulletVisual : MonoBehaviour
 {
     Bullet _bulletLogic;
-    BattleSceneManager _battleManager;
+    BattleLogic _battleManager;
 
     public Bullet BulletLogic
     {

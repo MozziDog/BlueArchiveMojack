@@ -39,7 +39,7 @@ namespace Logic
         public float obstacleJumpSpeed;
         public Obstacle destObstacle;
         public float sightRange = 13f;
-        public float attackRange = 7f;
+        public float attackRange;
         public float distToEnemy = 10f;
         public float positioningAttackRangeRatio = 0.88f;       // 이동 위치 선정할 때 최대 사거리 대신 사거리에 이 값을 곱해서 사용
         public int recentHit = 0;
@@ -62,7 +62,7 @@ namespace Logic
 
         [Title("컴포넌트 레퍼런스")]
         public PathFinder pathFinder;
-        public BattleSceneManager battleSceneManager;
+        public BattleLogic battleLogic;
 
         BehaviorTree _bt;
         SkillData exSkill;
@@ -74,16 +74,18 @@ namespace Logic
         public bool CanUseExSkill { get { return !_isObstacleJumping; } }
 
         // 이벤트
+        public Action OnAttack;
+        public Action OnUseExSkill;
+        public Action OnUseNormalSkill;
+        public Action OnReload;
         public delegate void CharacterDamageEvent(int damage, bool isCritical, AttackType attackType, ArmorType armorType);
         public CharacterDamageEvent OnCharacterTakeDamage;
         public Action OnDie;
-        public Action OnReload;
 
 
-        public void Init(BattleSceneManager battle, CharacterData charData, CharacterStatData statData, PathFinder pathFinder)
+        public void Init(BattleLogic battle, CharacterData charData, CharacterStatData statData)
         {
-            battleSceneManager = battle;
-            this.pathFinder = pathFinder;
+            battleLogic = battle;
             _bt = BuildBehaviorTree();
 
             // 필드 초기화
@@ -97,6 +99,7 @@ namespace Logic
             CostRegen = statData.CostRegen;
             moveSpeed = statData.MoveSpeed;
             obstacleJumpSpeed = statData.ObstacleJumpSpeed;
+            attackRange = statData.NormalAttackRange;
 
             _curAmmo = _maxAmmo;
             currentHP = _maxHP;
@@ -129,7 +132,7 @@ namespace Logic
             BehaviorNode subTree_ExSkill = new DecoratorInverter(checkAndUseExSkill);
 
             // 다음 웨이브 스폰까지 기다리기
-            Conditional isNoEnemy = new Conditional(() => { return battleSceneManager.EnemiesLogic.Count <= 0; });
+            Conditional isNoEnemy = new Conditional(() => { return battleLogic.EnemiesLogic.Count <= 0; });
             BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
             BehaviorNode waitUntilEnemySpawn = new DecoratorInverter(new Sequence(isNoEnemy, waitEnemySpawn));
 
@@ -205,7 +208,7 @@ namespace Logic
         {
             currentTarget = null;
             float minDist = float.MaxValue;
-            foreach (var enemy in battleSceneManager.EnemiesLogic)
+            foreach (var enemy in battleLogic.EnemiesLogic)
             {
                 float dist = (enemy.Position - Position).magnitude;
                 if (dist > sightRange)
@@ -252,7 +255,7 @@ namespace Logic
             // 2. 그 중에 가장 나와 가까운 것을 선정
             Obstacle targetObstacle = null;
             float targetObstacleDistance = float.MaxValue;
-            foreach (var ob in battleSceneManager.Obstacles)
+            foreach (var ob in battleLogic.Obstacles)
             {
                 // 엄폐물이 이미 점유중인 경우 더 고려할 필요 없음
                 if (ob.isOccupied) continue;
@@ -370,7 +373,7 @@ namespace Logic
             if (_isObstacleJumping)
             {
                 Position2 jumpEndPos = pathFinder.GetObstacleJumpEndPos();
-                Position = Position2.MoveTowards(Position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.BaseLogicTickrate);
+                Position = Position2.MoveTowards(Position, jumpEndPos, obstacleJumpSpeed / battleLogic.BaseLogicTickrate);
                 if ((Position - jumpEndPos).magnitude < 0.1f)
                 {
                     LogicDebug.Log("장애물 극복 완료");
@@ -383,11 +386,10 @@ namespace Logic
             {
                 // 이동 수행
                 Position2 oldPosition = this.Position;
-                float stepLength = moveSpeed / battleSceneManager.BaseLogicTickrate;
+                float stepLength = moveSpeed / battleLogic.BaseLogicTickrate;
                 pathFinder.CalculatePath(moveDest);
                 Position = pathFinder.FollowPath(stepLength);
                 Position2 newPosition = this.Position;
-                LogicDebug.Log($"step dist: {Position2.Distance(oldPosition, newPosition)}");
             }
             return BehaviorResult.Running;
         }
@@ -434,7 +436,7 @@ namespace Logic
                 {
                     LogicDebug.Log("장애물 극복 중");
                     Position2 jumpEndPos = pathFinder.GetObstacleJumpEndPos();
-                    Position = Position2.MoveTowards(Position, jumpEndPos, obstacleJumpSpeed / battleSceneManager.BaseLogicTickrate);
+                    Position = Position2.MoveTowards(Position, jumpEndPos, obstacleJumpSpeed / battleLogic.BaseLogicTickrate);
                     if ((Position - jumpEndPos).magnitude < 0.1f)
                     {
                         LogicDebug.Log("장애물 극복 완료");
@@ -449,14 +451,13 @@ namespace Logic
                     bool isPathFounded = pathFinder.CalculatePath(Position + Position2.forward * 3);
                     if (isPathFounded)
                     {
-                        Position = pathFinder.FollowPath(moveSpeed / battleSceneManager.BaseLogicTickrate);
+                        Position = pathFinder.FollowPath(moveSpeed / battleLogic.BaseLogicTickrate);
                     }
                     else
                     {
-                        LogicDebug.Log("길찾기 실패하여 무지성 앞으로 이동");
-                        Position += new Position2(0, moveSpeed / battleSceneManager.BaseLogicTickrate);
+                        LogicDebug.Log("길찾기 실패, 임의로 앞으로 이동");
+                        Position += new Position2(0, moveSpeed / battleLogic.BaseLogicTickrate);
                     }
-                    LogicDebug.Log("Move to next wave");
                 }
 
                 return BehaviorResult.Running;
@@ -488,7 +489,12 @@ namespace Logic
                 bulletComponent.AttackPower = attackPower;
                 bulletComponent.ProjectileSpeed = 15f;
 
-                battleSceneManager.AddBullet(bulletComponent);
+                battleLogic.AddBullet(bulletComponent);
+
+                if(OnAttack != null)
+                {
+                    OnAttack();
+                }
 
                 // currentTarget.TakeDamage(AttackType, attackPower);
                 _curAmmo -= 1;
@@ -543,7 +549,12 @@ namespace Logic
                 skillProjectile.AttackPower = attackPower * 10;
                 skillProjectile.AttackType = AttackType;
                 skillProjectile.ProjectileSpeed = 20f;
-                battleSceneManager.AddBullet(skillProjectile);
+                battleLogic.AddBullet(skillProjectile);
+
+                if(OnUseExSkill != null)
+                {
+                    OnUseExSkill();
+                }
             }
 
             // Action의 마지막 프레임
@@ -605,7 +616,12 @@ namespace Logic
                 skillProjectile.AttackPower = attackPower * 2;
                 skillProjectile.AttackType = AttackType;
                 skillProjectile.ProjectileSpeed = 20f;
-                battleSceneManager.AddBullet(skillProjectile);
+                battleLogic.AddBullet(skillProjectile);
+
+                if(OnUseNormalSkill != null)
+                {
+                    OnUseNormalSkill();
+                }
 
                 normalSkillCondition.ResetSkillCondition();
             }
@@ -625,7 +641,6 @@ namespace Logic
         {
             // TODO: 공격 계산식 수정하기
             float damageMultiplier = AttackEffectiveness.GetEffectiveness(attackType, ArmorType);
-            LogicDebug.Log($"특효 배율: {damageMultiplier}");
             int damage = (int)Math.Round(attackPower * damageMultiplier);
             currentHP -= damage;
             if (OnCharacterTakeDamage != null)
@@ -642,7 +657,7 @@ namespace Logic
         {
             // TODO: 후퇴 연출 필요
             isAlive = false;
-            battleSceneManager.RemoveDeadCharacter(this);
+            battleLogic.RemoveDeadCharacter(this);
             if(OnDie != null)
             {
                 OnDie();
