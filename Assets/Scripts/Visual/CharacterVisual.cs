@@ -7,7 +7,7 @@ using Unity.Mathematics;
 
 public class CharacterVisual : MonoBehaviour
 {
-    public Character CharacterLogic;
+    public CharacterLogic CharacterLogic;
     BattleLogic _battleManager;
     [SerializeField] DamageNumber damageNumberPrefab;
 
@@ -42,7 +42,7 @@ public class CharacterVisual : MonoBehaviour
 
     void LookAtEnemy()
     {
-        Character enemy = CharacterLogic.currentTarget;
+        CharacterLogic enemy = CharacterLogic.currentTarget;
         if(enemy == null)
         {
             return;

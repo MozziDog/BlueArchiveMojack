@@ -10,7 +10,7 @@ public class SkillCardUI : MonoBehaviour
     [SerializeField] TMP_Text display;
     [SerializeField] Button button;
 
-    public void SetSkillCard(Character character)
+    public void SetSkillCard(CharacterLogic character)
     {
         button.interactable = true;
         display.text = character.Name;

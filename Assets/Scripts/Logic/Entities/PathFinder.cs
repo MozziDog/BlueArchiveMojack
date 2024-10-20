@@ -9,7 +9,7 @@ namespace Logic
     [RequireComponent(typeof(NavMeshAgent))]
     public class PathFinder : MonoBehaviour
     {
-        public Character CharacterLogic;
+        public CharacterLogic CharacterLogic;
 
         public bool isOnOffMeshLink
         {
@@ -66,9 +66,9 @@ namespace Logic
             return new Position2(charPosition.x, charPosition.z);
         }
 
-        public Obstacle GetOccupyingObstacle()
+        public ObstacleLogic GetOccupyingObstacle()
         {
-            return naviAgent.currentOffMeshLinkData.offMeshLink.GetComponent<Obstacle>();
+            return naviAgent.currentOffMeshLinkData.offMeshLink.GetComponent<ObstacleLogic>();
         }
 
         public Position2 GetObstacleJumpEndPos()

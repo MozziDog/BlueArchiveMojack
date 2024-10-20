@@ -9,7 +9,7 @@ using System;
 namespace Logic
 {
     [Serializable]
-    public class Obstacle
+    public class ObstacleLogic
     {
         public Position2[] CoveringPoint;
         public bool canJumpOver;
