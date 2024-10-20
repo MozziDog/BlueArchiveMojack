@@ -406,7 +406,7 @@ namespace Logic
 
         BehaviorResult WaitSkillDone()
         {
-            if (IsDoingSomeAction)
+            if (_battleLogic.GetIfSomeAllyDoingAction())
             {
                 LogicDebug.Log("스킬 종료 대기중");
                 return BehaviorResult.Running;

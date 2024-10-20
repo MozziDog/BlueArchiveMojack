@@ -140,6 +140,16 @@ namespace Logic
             RemoveInactiveEntities();
         }
 
+        public bool GetIfSomeAllyDoingAction()
+        {
+            bool answer = false;
+            foreach(var character in CharactersLogic)
+            {
+                answer |= character.IsDoingSomeAction;
+            }
+            return answer;
+        }
+
         void DrawSkillCard()
         {
             skillCardHand.Add(skillCardDeck.First.Value);
