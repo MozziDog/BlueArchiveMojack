@@ -31,31 +31,31 @@ namespace Logic
 
         [Title("관리중인 엔티티들(로직)")]
         public CharacterGroup CharactersLogic = new CharacterGroup();      // 아군
-        List<Character> _charactersToRemove = new List<Character>();
+        List<CharacterLogic> _charactersToRemove = new List<CharacterLogic>();
         public CharacterGroup EnemiesLogic = new CharacterGroup();          // 적군
-        List<Character> _enemiesToRemove = new List<Character>();
-        public List<Obstacle> Obstacles = new List<Obstacle>();
-        public List<Bullet> BulletsActive = new List<Bullet>();
-        List<Bullet> _bulletsToRemove = new List<Bullet>();
+        List<CharacterLogic> _enemiesToRemove = new List<CharacterLogic>();
+        public List<ObstacleLogic> Obstacles = new List<ObstacleLogic>();
+        public List<BulletLogic> BulletsActive = new List<BulletLogic>();
+        List<BulletLogic> _bulletsToRemove = new List<BulletLogic>();
 
         [Title("EX 스킬 관련")]
         public int ExCostCount = 0;         // 현재 코스트 갯수. Ex 스킬 사용에 필요.
         public int ExCostRecharging = 0;    // 현재 코스트 충전량. 이 값이 최대치가 되면 ExCostCount가 1 증가.
         public int ExCostRegen = 0;         // 틱 당 코스트 회복량. 캐릭터 코스트 회복량의 총합.
-        public List<Character> skillCardHand = new List<Character>();       // 패. 최대 3장
-        public LinkedList<Character> skillCardDeck = new LinkedList<Character>(); // 덱. 패에 들고 있지 않은 모든 스킬카드.
+        public List<CharacterLogic> skillCardHand = new List<CharacterLogic>();       // 패. 최대 3장
+        public LinkedList<CharacterLogic> skillCardDeck = new LinkedList<CharacterLogic>(); // 덱. 패에 들고 있지 않은 모든 스킬카드.
 
         [Title("카메라 관리")]
         CameraTargetGroupControl cameraTargetGroup;
 
         // 전투 중 발생하는 이벤트들
         public Action OnBattleBegin;
-        public delegate void CharacterInstanceEvent(Character characterLogic);
+        public delegate void CharacterInstanceEvent(CharacterLogic characterLogic);
         public CharacterInstanceEvent OnAllySpawn;
         public CharacterInstanceEvent OnEnemySpawn;
         public CharacterInstanceEvent OnAllyDie;
         public CharacterInstanceEvent OnEnemyDie;
-        public delegate void BulletInstacneEvent(Bullet bulletLogic);
+        public delegate void BulletInstacneEvent(BulletLogic bulletLogic);
         public BulletInstacneEvent OnBulletSpawned;
         public BulletInstacneEvent OnBulletExpired;
 
@@ -68,7 +68,7 @@ namespace Logic
             // 아군
             for(int i=0; i<battleData.characters.Count; i++)
             {
-                Character newCharacter = AddCharacter(battleData.characters[i], battleData.characterStats[i]);
+                CharacterLogic newCharacter = AddCharacter(battleData.characters[i], battleData.characterStats[i]);
                 newCharacter.Position = SpawnPoint[i];
             }
 
@@ -146,7 +146,7 @@ namespace Logic
             skillCardDeck.RemoveFirst();
         }
 
-        void RemoveSkillCardFromDeck(Character toRemove)
+        void RemoveSkillCardFromDeck(CharacterLogic toRemove)
         {
             // 삭제할 카드가 패에 있다면, 삭제하고 (가능하다면) 드로우
             if(skillCardHand.Remove(toRemove))
@@ -170,7 +170,7 @@ namespace Logic
                 Debug.LogError("해당 위치에는 스킬카드가 없음!");
                 return;
             }
-            Character character = skillCardHand[index];
+            CharacterLogic character = skillCardHand[index];
             if(!character.CanUseExSkill)
             {
                 Debug.LogWarning("장애물을 뛰어넘는 중에는 Ex 스킬을 사용할 수 없음");
@@ -192,10 +192,10 @@ namespace Logic
             return;
         }
 
-        public Character AddCharacter(CharacterData characterData, CharacterStatData characterStat)
+        public CharacterLogic AddCharacter(CharacterData characterData, CharacterStatData characterStat)
         {
             // 캐릭터(로직) 생성
-            Character characterLogic = new Character();
+            CharacterLogic characterLogic = new CharacterLogic();
 
             // 나머지 초기화 진행
             characterLogic.Init(this, characterData, characterStat);
@@ -211,7 +211,7 @@ namespace Logic
         /// <summary>
         /// Character에 의해 스폰된 총알을 관리 대상에 추가
         /// </summary>
-        public void AddBullet(Bullet bullet)
+        public void AddBullet(BulletLogic bullet)
         {
             BulletsActive.Add(bullet);
             bullet.Init(this);
@@ -255,7 +255,7 @@ namespace Logic
         /// <summary>
         /// 아군 적군 상관없이 임의의 캐릭터 사망 시 이벤트
         /// </summary>
-        public void RemoveDeadCharacter(Character deadCharacter)
+        public void RemoveDeadCharacter(CharacterLogic deadCharacter)
         {
             // 아군일 경우
             if(CharactersLogic.Contains(deadCharacter))
@@ -280,7 +280,7 @@ namespace Logic
         /// <summary>
         /// 총알 수명 다했을 때 없애기
         /// </summary>
-        public void RemoveExpiredBullet(Bullet expiredBullet)
+        public void RemoveExpiredBullet(BulletLogic expiredBullet)
         {
             _bulletsToRemove.Add(expiredBullet);
             if(OnBulletExpired != null)

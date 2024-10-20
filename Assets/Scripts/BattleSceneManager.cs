@@ -78,7 +78,7 @@ public class BattleSceneManager : MonoBehaviour
         }
     }
 
-    void SpawnCharacterVisual(Character newCharacter)
+    void SpawnCharacterVisual(CharacterLogic newCharacter)
     {
         // 캐릭터(비주얼) 생성
         GameObject characterVisualObject = Instantiate(CharacterViewDatabase.CharacterViews[newCharacter.Name]);
@@ -101,7 +101,7 @@ public class BattleSceneManager : MonoBehaviour
         }
     }
 
-    void DestroyCharacterVisual(Character deadCharacter)
+    void DestroyCharacterVisual(CharacterLogic deadCharacter)
     {
         // 대상 CharacterVisual 찾기
         CharacterVisual deadCharacterVisual = CharacterVisuals.Find((ch) => { return ch.CharacterLogic == deadCharacter; });
@@ -113,7 +113,7 @@ public class BattleSceneManager : MonoBehaviour
         Destroy(deadCharacterVisual.gameObject);
     }
 
-    void SpawnEnemyVisual(Character newEnemy)
+    void SpawnEnemyVisual(CharacterLogic newEnemy)
     {
         // 적(비주얼) 생성
         GameObject enemyVisualObject = Instantiate(EnemyPrefab);
@@ -125,7 +125,7 @@ public class BattleSceneManager : MonoBehaviour
         EnemyVisuals.Add(enemyVisualComponent);
     }
 
-    void DestroyEnemyVisual(Character deadEnemy)
+    void DestroyEnemyVisual(CharacterLogic deadEnemy)
     {
         // 대상 CharacterVisual 찾기
         CharacterVisual deadEnemyVisual = EnemyVisuals.Find((ch) => { return ch.CharacterLogic == deadEnemy; });
@@ -137,7 +137,7 @@ public class BattleSceneManager : MonoBehaviour
         Destroy(deadEnemyVisual.gameObject);
     }
 
-    void SpawnBulletVisual(Bullet newBullet)
+    void SpawnBulletVisual(BulletLogic newBullet)
     {
         // 새 총알 오브젝트를 생성하고 Bullet 로직과 연결
         GameObject bulletObject = Instantiate(BulletPrefab);
@@ -151,7 +151,7 @@ public class BattleSceneManager : MonoBehaviour
         }
     }
 
-    void DestroyBulletVisual(Bullet expiredBullet)
+    void DestroyBulletVisual(BulletLogic expiredBullet)
     {
         // 대응하는 bulletVisual 찾기
         BulletVisual expiredBulletVisual = BulletVisuals.Find((bu) => { return bu.BulletLogic == expiredBullet; });

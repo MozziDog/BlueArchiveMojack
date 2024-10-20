@@ -8,7 +8,7 @@ using Sirenix.OdinInspector;
 namespace Logic
 {
     [Serializable]
-    public class Character
+    public class CharacterLogic
     {
         [Title("기본 정보")]
         public string Name;
@@ -27,9 +27,9 @@ namespace Logic
         public int CostRegen;
 
         [Title("엄폐 관련")]
-        public Obstacle coveringObstacle;       // 현재 엄폐를 수행중인 엄폐물
+        public ObstacleLogic coveringObstacle;       // 현재 엄폐를 수행중인 엄폐물
         public bool isDoingCover = false;
-        private Obstacle occupyinngObstacle;           // 현재 점유 중인 장애물
+        private ObstacleLogic occupyinngObstacle;           // 현재 점유 중인 장애물
 
         [Title("이동 관련")]
         public Position2 Position;
@@ -37,7 +37,7 @@ namespace Logic
         public int moveStartFrame = 0;
         public int moveEndFrame = 13;
         public float obstacleJumpSpeed;
-        public Obstacle destObstacle;
+        public ObstacleLogic destObstacle;
         public float sightRange = 13f;
         public float attackRange;
         public float distToEnemy = 10f;
@@ -46,7 +46,7 @@ namespace Logic
         public bool _isObstacleJumping;
 
         [Title("전투 관련")]
-        public Character currentTarget;
+        public CharacterLogic currentTarget;
         public int _maxAmmo = 15;
         public int _curAmmo;
         public int ExSkillCost;
@@ -253,7 +253,7 @@ namespace Logic
             // BattleSceneManager에 보관된 Obstacle들 중에
             // 1. 사거리 * 0.88 이내이면서
             // 2. 그 중에 가장 나와 가까운 것을 선정
-            Obstacle targetObstacle = null;
+            ObstacleLogic targetObstacle = null;
             float targetObstacleDistance = float.MaxValue;
             foreach (var ob in battleLogic.Obstacles)
             {
@@ -481,7 +481,7 @@ namespace Logic
             if (curActionFrame >= attackDurationFrame)
             {
                 LogicDebug.Log("기본 공격 투사체 생성");
-                Bullet bulletComponent = new Bullet();
+                BulletLogic bulletComponent = new BulletLogic();
                 bulletComponent.Position = this.Position;
                 bulletComponent.Attacker = this;
                 bulletComponent.Target = currentTarget;
@@ -541,7 +541,7 @@ namespace Logic
             if (exSkillFrame == exSkill.StartupFrame)
             {
                 // TODO: 힐/버프 시에는 Bullet 대신 별도의 클래스로 구현하기
-                Bullet skillProjectile = new Bullet();
+                BulletLogic skillProjectile = new BulletLogic();
                 skillProjectile.Position = this.Position;
                 skillProjectile.Attacker = this;
                 skillProjectile.Target = currentTarget;
@@ -608,7 +608,7 @@ namespace Logic
             if (curActionFrame == normalSkill.StartupFrame)
             {
                 // TODO: 힐/버프 시에는 Bullet 대신 별도의 클래스로 구현하기
-                Bullet skillProjectile = new Bullet();
+                BulletLogic skillProjectile = new BulletLogic();
                 skillProjectile.Position = this.Position;
                 skillProjectile.Attacker = this;
                 skillProjectile.Target = currentTarget;

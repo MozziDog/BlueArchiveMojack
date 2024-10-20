@@ -6,27 +6,27 @@ using UnityEngine;
 namespace Logic
 {
     [Serializable]
-    public class CharacterGroup : IEnumerable<Character>
+    public class CharacterGroup : IEnumerable<CharacterLogic>
     {
-        public List<Character> elements = new List<Character>();
+        public List<CharacterLogic> elements = new List<CharacterLogic>();
 
         public int Count
         {
             get { return elements.Count; }
         }
 
-        public Character this[int i]
+        public CharacterLogic this[int i]
         {
             get { return elements[i]; }
             set { elements[i] = value; }
         }
 
-        public void Add(Character newCharacter)
+        public void Add(CharacterLogic newCharacter)
         {
             elements.Add(newCharacter);
         }
 
-        public void Remove(Character deadCharacter)
+        public void Remove(CharacterLogic deadCharacter)
         {
             elements.Remove(deadCharacter);
         }
@@ -36,7 +36,7 @@ namespace Logic
             return elements.GetEnumerator();
         }
 
-        public IEnumerator<Character> GetEnumerator()
+        public IEnumerator<CharacterLogic> GetEnumerator()
         {
             return elements.GetEnumerator();
         }

@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace Logic
 {
     [Serializable]
-    public class Bullet
+    public class BulletLogic
     {
         public Position2 Position;
         Position2 _destPosition;  // 대상이 사라진 경우에도 총알 진행 가능하도록 대상 위치 보관
 
-        public Character Attacker;
-        public Character Target;
+        public CharacterLogic Attacker;
+        public CharacterLogic Target;
         public AttackType AttackType;
         public int AttackPower;
         public float ProjectileSpeed;

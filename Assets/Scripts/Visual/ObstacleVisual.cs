@@ -7,7 +7,7 @@ using UnityEngine.AI;
 
 public class ObstacleVisual : MonoBehaviour
 {
-    public Obstacle ObstacleLogic;
+    public ObstacleLogic ObstacleLogic;
     public OffMeshLink offMeshLink;
 
     void Awake()
@@ -25,7 +25,7 @@ public class ObstacleVisual : MonoBehaviour
     {
         if(ObstacleLogic == null)
         {
-            ObstacleLogic = new Obstacle();
+            ObstacleLogic = new ObstacleLogic();
         }
         List<Position2> coveringPoints = new List<Position2>();
         foreach(var point in transforms)

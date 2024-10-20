@@ -5,10 +5,10 @@ using Logic;
 
 public class BulletVisual : MonoBehaviour
 {
-    Bullet _bulletLogic;
+    BulletLogic _bulletLogic;
     BattleLogic _battleManager;
 
-    public Bullet BulletLogic
+    public BulletLogic BulletLogic
     {
         get
         {
