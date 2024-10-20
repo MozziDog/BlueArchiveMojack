@@ -41,7 +41,6 @@ public class CharacterStatData : ScriptableObject       // 임시로 ScriptableO
     public int NormalAttackRange;               // 평타 사거리
     public int InitialRangeRate;                // 위치 선정 시의 평타 거리 감소율
     public float MoveSpeed;                       // 기본 이동 속도
-    public float ObstacleJumpSpeed; 
     public int SightRange;                      // 다음 웨이브의 적 인식 거리
     public int CostRegen;                       // 코스트 회복량
     public int Stability;                       // 안정 수치

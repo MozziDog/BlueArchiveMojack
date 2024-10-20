@@ -5,7 +5,7 @@ namespace Logic
 {
     // Representation of 2D vectors and points.
     [StructLayout(LayoutKind.Sequential)]
-    [System.Serializable]
+    [Serializable]
     public struct Position2 : IEquatable<Position2>
     {
         // X component of the vector.

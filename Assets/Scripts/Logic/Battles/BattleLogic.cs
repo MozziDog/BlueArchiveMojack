@@ -69,7 +69,7 @@ namespace Logic
             for(int i=0; i<battleData.characters.Count; i++)
             {
                 CharacterLogic newCharacter = AddCharacter(battleData.characters[i], battleData.characterStats[i]);
-                newCharacter.Position = SpawnPoint[i];
+                newCharacter.SetPosition(SpawnPoint[i]);
             }
 
             // 적군
@@ -182,7 +182,7 @@ namespace Logic
                 return;
             }
 
-            character.exSkillTrigger = true;
+            character.TriggerExSkill();
 
             // 스킬 카드를 덱의 맨 밑으로 넣고 한 장 드로우
             skillCardHand.Remove(character);

@@ -1,17 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
-using DamageNumbersPro;
 using UnityEngine;
+using Sirenix.OdinInspector;
 using Logic;
-using Unity.Mathematics;
+using DamageNumbersPro;
 
 public class CharacterVisual : MonoBehaviour
 {
     public CharacterLogic CharacterLogic;
-    BattleLogic _battleManager;
-    [SerializeField] DamageNumber damageNumberPrefab;
 
+    // 적 허수아비용 강제 초기화
+    [SerializeField] bool _forceInitializeWithUnity;
+    [ShowIf("_forceInitializeWithUnity")]
+    [SerializeField] Position2 _initPosition;
+    [ShowIf("_forceInitializeWithUnity")]
+    [SerializeField] int _initHP;
+
+    [SerializeField] DamageNumber _damageNumberPrefab;
     Vector3 _positionBeforeFrame;
+
+    void Awake()
+    {
+        // 디버그용: CharacterLogic의 일부 필드를 CharacterVisual의 것으로 덮어쓰기
+        if (_forceInitializeWithUnity)
+        {
+            CharacterLogic.SetPosition(_initPosition);
+            CharacterLogic.SetHP(_initHP);
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -30,7 +46,7 @@ public class CharacterVisual : MonoBehaviour
     {
         transform.position = new Vector3(CharacterLogic.Position.x, 0, CharacterLogic.Position.y);
 
-        if (CharacterLogic.isMoving)
+        if (CharacterLogic.IsMoving)
         {
             Vector3 positionCurrentFrame = transform.position;
             // (현재 위치 + 이동방향) 바라보기
@@ -42,7 +58,7 @@ public class CharacterVisual : MonoBehaviour
 
     void LookAtEnemy()
     {
-        CharacterLogic enemy = CharacterLogic.currentTarget;
+        CharacterLogic enemy = CharacterLogic.CurrentTarget;
         if(enemy == null)
         {
             return;
@@ -54,15 +70,15 @@ public class CharacterVisual : MonoBehaviour
 
     void DisplayReloadMessage()
     {
-        damageNumberPrefab.Spawn(transform.position, "Reloaded");
+        _damageNumberPrefab.Spawn(transform.position, "Reloaded");
     }
 
     void DisplayDamageNumber(int damage, bool isCritical, AttackType attackType, ArmorType armorType)
     {
         Debug.Log("데미지 넘버 스폰");
-        if (damageNumberPrefab != null)
+        if (_damageNumberPrefab != null)
         {
-            damageNumberPrefab.Spawn(transform.position, damage);
+            _damageNumberPrefab.Spawn(transform.position, damage);
         }
     }
 
@@ -82,7 +98,7 @@ public class CharacterVisual : MonoBehaviour
         // Gizmos.DrawSphere(CharacterLogic.moveDest, 0.1f);
 
         // 공격 대상
-        if (CharacterLogic.currentTarget != null)
+        if (CharacterLogic.CurrentTarget != null)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(new Vector3(CharacterLogic.Position.x, 0, CharacterLogic.Position.y), 0.1f);
