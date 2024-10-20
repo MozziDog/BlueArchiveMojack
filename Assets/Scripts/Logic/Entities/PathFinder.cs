@@ -44,31 +44,33 @@ namespace Logic
 
         public Position2 FollowPath(float stepLength)
         {
-            Vector3 charPosition = transform.position;
+            Vector3 curPosition = transform.position;
+            curPosition.y = 0;          // xz 평면에서만 계산할 수 있도록 y값 무시
             for (int i = 0; i < path.corners.Length; i++)
             {
-                float distToNextPoint = Vector3.Distance(charPosition, path.corners[i]);
+                path.corners[i].y = 0;  // xz 평면에서만 계산할 수 있도록 y값 무시
+                float distToNextPoint = Vector3.Distance(curPosition, path.corners[i]);
                 if (distToNextPoint < stepLength)
                 {
                     stepLength -= distToNextPoint;
-                    charPosition = path.corners[i];
+                    curPosition = path.corners[i];
                 }
                 else
                 {
-                    charPosition = Vector3.MoveTowards(charPosition, path.corners[i], stepLength);
+                    curPosition = Vector3.MoveTowards(curPosition, path.corners[i], stepLength);
                     break;
                 }
             }
             // isOnOffMeshLink 정보를 위해 naviAgent 강제 업데이트
             naviAgent.SetPath(path);
-            // naviAgent.Move(charPosition - transform.position);
-
-            return new Position2(charPosition.x, charPosition.z);
+            return new Position2(curPosition.x, curPosition.z);
         }
 
         public ObstacleLogic GetOccupyingObstacle()
         {
-            return naviAgent.currentOffMeshLinkData.offMeshLink.GetComponent<ObstacleLogic>();
+            ObstacleVisual obstacleVisual 
+                = naviAgent.currentOffMeshLinkData.offMeshLink.GetComponent<ObstacleVisual>();
+            return obstacleVisual.ObstacleLogic;
         }
 
         public Position2 GetObstacleJumpEndPos()
