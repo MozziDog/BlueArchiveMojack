@@ -716,6 +716,11 @@ namespace Logic
 
         public void TakeDamage(AttackType attackType, int attackPower)
         {
+            if(!isAlive)
+            {
+                return;
+            }
+
             // TODO: 공격 계산식 수정하기
             float damageMultiplier = AttackEffectiveness.GetEffectiveness(attackType, ArmorType);
             int damage = (int)Math.Round(attackPower * damageMultiplier);
@@ -734,6 +739,16 @@ namespace Logic
         {
             // TODO: 후퇴 연출 필요
             isAlive = false;
+
+            // 더이상 불필요한 이벤트 핸들러들 등록 취소
+            if(OnCharacterTakeDamage != null)
+            {
+                foreach (var eventHandler in OnCharacterTakeDamage.GetInvocationList())
+                {
+                    OnCharacterTakeDamage -= (CharacterDamageEvent)eventHandler;
+                }
+            }
+
             if(OnDie != null)
             {
                 OnDie();

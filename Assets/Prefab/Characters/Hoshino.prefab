@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1900126608512869852}
   - component: {fileID: 823090725880857749}
   m_Layer: 0
-  m_Name: Shiroko
+  m_Name: Hoshino
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -219,7 +219,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f32a1bdba18b8d74e8d4d3eb125f6b93, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

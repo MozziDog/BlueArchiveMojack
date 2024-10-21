@@ -86,10 +86,13 @@ namespace Logic
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = Color.red;
-            for (int i = 1; i < path.corners.Length; i++)
+            if (path != null)
             {
-                Gizmos.DrawLine(path.corners[i - 1], path.corners[i]);
+                Gizmos.color = Color.red;
+                for (int i = 1; i < path.corners.Length; i++)
+                {
+                    Gizmos.DrawLine(path.corners[i - 1], path.corners[i]);
+                }
             }
         }
     }

@@ -2246,8 +2246,10 @@ MonoBehaviour:
   BattleData:
     characters:
     - {fileID: 11400000, guid: aa1662e18c4216342ab169716724ad97, type: 2}
+    - {fileID: 11400000, guid: 94c38104aa68c644c9dad1a02788c49d, type: 2}
     characterStats:
     - {fileID: 11400000, guid: 0f08f87bdf7f90a45973a4d10dba3983, type: 2}
+    - {fileID: 11400000, guid: 2a5c8a7d1c2dea84d87db0a302581295, type: 2}
     enemies: []
     enemyStats: []
   CharacterViewDatabase: {fileID: 11400000, guid: 272b3fa63853d8d43a0f58bd4df3abe2, type: 2}

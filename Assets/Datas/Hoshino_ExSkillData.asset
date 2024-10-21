@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1a89852e3176294199c671790cbb9aa, type: 3}
+  m_Name: Hoshino_ExSkillData
+  m_EditorClassIdentifier: 
+  SkillType: 1
+  Cost: 4
+  NormalSkillCondition:
+    ConditionType: 0
+    Argument: 0
+  SkillRange:
+    ConditionType: 3
+    SkillRangeType: 0
+    Argument1: 1
+    Argument2: 0
+  Range: 0
+  StartupFrame: 40
+  RecoveryFrame: 90
