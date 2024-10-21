@@ -94,7 +94,8 @@ namespace Logic
             {
                 skillCardDeck.AddLast(CharactersLogic[i]);
             }
-            for(int i=0; i< Mathf.Min(skillCardDeck.Count, 3); i++)
+            int numberToDraw = Mathf.Min(skillCardDeck.Count, 3);
+            for (int i=0; i< numberToDraw; i++)
             {
                 DrawSkillCard();
             }
