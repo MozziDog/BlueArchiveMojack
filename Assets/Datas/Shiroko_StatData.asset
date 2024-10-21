@@ -40,7 +40,7 @@ MonoBehaviour:
   NormalAttackSpeed: 0
   NormalAttackRange: 9
   InitialRangeRate: 8800
-  MoveSpeed: 5
+  MoveSpeed: 4
   SightRange: 0
   CostRegen: 700
   Stability: 1384
