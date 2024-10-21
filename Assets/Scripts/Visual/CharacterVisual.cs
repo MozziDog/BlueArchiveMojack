@@ -37,6 +37,8 @@ public class CharacterVisual : MonoBehaviour
         CharacterLogic.OnUseNormalSkill += LookAtEnemy;
         CharacterLogic.OnUseExSkill += LookAtEnemy;
         CharacterLogic.OnReload += DisplayReloadMessage;
+        CharacterLogic.OnShoulderWeapon += DisplayShoulderMessage;
+        CharacterLogic.OnUnshoulderWeapon += DisplayUnshoulderMessage;
         CharacterLogic.OnCharacterTakeDamage += DisplayDamageNumber;
         CharacterLogic.OnDie += DestroyVisual;
     }
@@ -71,6 +73,16 @@ public class CharacterVisual : MonoBehaviour
     void DisplayReloadMessage()
     {
         _damageNumberPrefab.Spawn(transform.position, "Reloaded");
+    }
+
+    void DisplayShoulderMessage()
+    {
+        _damageNumberPrefab.Spawn(transform.position, "Shouldered Weapon");
+    }
+
+    void DisplayUnshoulderMessage()
+    {
+        _damageNumberPrefab.Spawn(transform.position, "Unshouldered Weapon");
     }
 
     void DisplayDamageNumber(int damage, bool isCritical, AttackType attackType, ArmorType armorType)

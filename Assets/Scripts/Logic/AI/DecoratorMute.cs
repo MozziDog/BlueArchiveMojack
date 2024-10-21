@@ -1,10 +1,10 @@
 namespace AI
 {
-    public class DecoratorInverter : BehaviorNode
+    public class DecoratorMute : BehaviorNode
     {
         BehaviorNode _behavior;
 
-        public DecoratorInverter(BehaviorNode behavior)
+        public DecoratorMute(BehaviorNode behavior)
         {
             _behavior = behavior;
         }
@@ -14,12 +14,10 @@ namespace AI
             BehaviorResult result = _behavior.Behave();
             switch(result)
             {
-                case BehaviorResult.Success:
-                    return BehaviorResult.Failure;
-                case BehaviorResult.Failure:
-                    return BehaviorResult.Success;
-                default:
+                case BehaviorResult.Running:
                     return BehaviorResult.Running;
+                default:
+                    return BehaviorResult.Success;
             }
         }
     }

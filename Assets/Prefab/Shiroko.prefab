@@ -52,42 +52,13 @@ MonoBehaviour:
     isAiActive: 1
     AttackType: 0
     ArmorType: 0
-    _maxHP: 0
-    currentHP: 0
-    attackPower: 0
-    defensePower: 0
-    healPower: 0
-    moveSpeed: 0
-    CostRegen: 0
-    coveringObstacle: {fileID: 0}
-    isDoingCover: 0
-    Position:
-      x: 0
-      y: 0
-    moveDest:
-      x: 0
-      y: 0
-    moveStartFrame: 0
-    moveEndFrame: 13
-    obstacleJumpSpeed: 0
-    destObstacle: {fileID: 0}
-    sightRange: 13
-    attackRange: 7
-    distToEnemy: 10
-    positioningAttackRangeRatio: 0.88
-    recentHit: 0
-    _isObstacleJumping: 0
-    _maxAmmo: 15
-    _curAmmo: 0
-    ExSkillCost: 0
-    exSkillTrigger: 0
-    curActionFrame: 0
-    exSkillFrame: 0
-    attackDurationFrame: 0
-    reloadDurationFrame: 0
     pathFinder: {fileID: 0}
-    battleSceneManager: {fileID: 0}
-  damageNumberPrefab: {fileID: 3122652536334177565, guid: 95a74633689866e4d8088eda5343ce2d, type: 3}
+  _forceInitializeWithUnity: 0
+  _initPosition:
+    x: 0
+    y: 0
+  _initHP: 0
+  _damageNumberPrefab: {fileID: 3122652536334177565, guid: 95a74633689866e4d8088eda5343ce2d, type: 3}
 --- !u!1 &2467656742192138509
 GameObject:
   m_ObjectHideFlags: 0

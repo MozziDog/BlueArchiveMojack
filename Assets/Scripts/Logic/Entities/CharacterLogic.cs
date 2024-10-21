@@ -37,11 +37,12 @@ namespace Logic
         ObstacleLogic _destObstacle;
         float _attackRange;
         float _distToEnemy = 10f;
-        bool _isObstacleJumping;
+        bool _isObstacleJumping = false;
+        bool _isShouldering = false;
 
         // 전투 관련
         CharacterLogic _currentTarget;
-        int _maxAmmo = 15;
+        int _maxAmmo;
         int _curAmmo;
         int _exSkillCost;
         bool _exSkillTrigger;
@@ -50,8 +51,9 @@ namespace Logic
         SkillData normalSkill;
 
         // 프레임 카운트
-        int _curActionFrame = 0;
-        int _exSkillFrame = 0;
+        int _curActionFrame = 0;        // 이곳저곳에서 범용으로 사용하는 프레임 카운터
+        int _attackFrame = 0;           // 기본공격 전용으로 사용하는 프레임 카운터
+        int _exSkillFrame = 0;          // EX 스킬 전용 프레임 카운터
 
         // 그 외 참조
         BattleLogic _battleLogic;
@@ -64,6 +66,8 @@ namespace Logic
         static readonly int MoveEndFrame = 13;
         static readonly int AttackDurationFrame = 17;
         static readonly int ReloadDurationFrame = 40;
+        static readonly int ShoulderDurationFrame = 15;
+        static readonly int UnshoulderDurationFrame = 15;
         static readonly float ObstacleJumpSpeedMultiplier = 0.8f;       // 장애물 뛰어넘을 때 이동속도 배율
 
         // 프로퍼티
@@ -80,6 +84,8 @@ namespace Logic
         public Action OnUseExSkill;
         public Action OnUseNormalSkill;
         public Action OnReload;
+        public Action OnShoulderWeapon;
+        public Action OnUnshoulderWeapon;
         public delegate void CharacterDamageEvent(int damage, bool isCritical, AttackType attackType, ArmorType armorType);
         public CharacterDamageEvent OnCharacterTakeDamage;
         public Action OnDie;
@@ -94,21 +100,22 @@ namespace Logic
             AttackType = charData.AttackType;
             ArmorType = charData.ArmorType;
 
+            _maxHP = statData.HPLevel1;
             _attackPower = statData.AttackPowerLevel1;
             _defensePower = statData.DefensePowerLevel1;
             _healPower = statData.HealPowerLevel1;
             _costRegen = statData.CostRegen;
             _moveSpeed = statData.MoveSpeed;
             _attackRange = statData.NormalAttackRange;
-
-            _curAmmo = _maxAmmo;
-            _currentHP = _maxHP;
+            _maxAmmo = statData.AmmoCount;
             _exSkillCost = charData.skills[0].Cost;
+
+            _currentHP = _maxHP;
+            _curAmmo = _maxAmmo;
 
             // 스킬 등록
             exSkill = charData.skills[0];
             normalSkill = charData.skills[1];
-
 
             // 일반 스킬 조건 등록
             AutoSkillCondition normalSkillConditionData = charData.skills[1].NormalSkillCondition;
@@ -126,48 +133,60 @@ namespace Logic
         protected BehaviorTree BuildBehaviorTree()
         {
             // EX 스킬 (최우선 순위)
-            Conditional isExSkillTriggerd = new Conditional(() => { return _exSkillTrigger; });
-            BehaviorAction useExSkill = new BehaviorAction(UseExSkill);
-            BehaviorNode checkAndUseExSkill = new StatefulSequence(isExSkillTriggerd, useExSkill);
+                    Conditional isExSkillTriggerd = new Conditional(() => { return _exSkillTrigger; });
+                    BehaviorAction useExSkill = new BehaviorAction(UseExSkill);
+                BehaviorNode checkAndUseExSkill = new StatefulSequence(isExSkillTriggerd, useExSkill);
             BehaviorNode subTree_ExSkill = new DecoratorInverter(checkAndUseExSkill);
 
             // 다음 웨이브 스폰까지 기다리기
-            Conditional isNoEnemy = new Conditional(() => { return _battleLogic.EnemiesLogic.Count <= 0; });
-            BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
+                Conditional isNoEnemy = new Conditional(() => { return _battleLogic.EnemiesLogic.Count <= 0; });
+                BehaviorAction waitEnemySpawn = new BehaviorAction(WaitEnemySpawn);
             BehaviorNode waitUntilEnemySpawn = new DecoratorInverter(new Sequence(isNoEnemy, waitEnemySpawn));
 
             // 다음 웨이브까지 이동
-            BehaviorAction waitSkillDone = new BehaviorAction(WaitSkillDone);
-            BehaviorAction moveToEnemyWave = new BehaviorAction(MoveToNextWave);
+                BehaviorAction waitSkillDone = new BehaviorAction(WaitSkillDone);
+                BehaviorAction moveToEnemyWave = new BehaviorAction(MoveToNextWave);
             BehaviorNode moveToNextWave = new StatefulSequence(waitSkillDone, moveToEnemyWave);
 
             // 교전
             // 기본 스킬
-            Conditional canUseNormalSkill = new Conditional(CheckCanUseNormalSkill);
-            BehaviorAction useNormalSkill = new BehaviorAction(UseNormalSkill);
-            BehaviorNode checkAndUseNormalSkill = new StatefulSequence(canUseNormalSkill, useNormalSkill);
+                    Conditional canUseNormalSkill = new Conditional(CheckCanUseNormalSkill);
+                    BehaviorAction useNormalSkill = new BehaviorAction(UseNormalSkill);
+                BehaviorNode checkAndUseNormalSkill = new StatefulSequence(canUseNormalSkill, useNormalSkill);
             BehaviorNode subTree_NormalSkill = new DecoratorInverter(checkAndUseNormalSkill);
 
             // 이동
-            BehaviorAction getNextDest = new BehaviorAction(GetNextDest);
-            BehaviorAction moveStart = new BehaviorAction(MoveStart);
-            BehaviorAction moveDoing = new BehaviorAction(MoveDoing);
-            BehaviorAction moveEnd = new BehaviorAction(MoveEnd);
+                BehaviorAction getNextDest = new BehaviorAction(GetNextDest);
+                BehaviorAction moveStart = new BehaviorAction(MoveStart);
+                BehaviorAction moveDoing = new BehaviorAction(MoveDoing);
+                BehaviorAction moveEnd = new BehaviorAction(MoveEnd);
             BehaviorNode subTree_Move = new StatefulSequence(getNextDest, moveStart, moveDoing, moveEnd);
 
             // 재장전
-            Conditional needToReload = new Conditional(() => { return _curAmmo <= 0; });
-            BehaviorAction doReload = new BehaviorAction(Reload);
-            BehaviorNode reload = new Sequence(needToReload, doReload);
+                    Conditional needToReload = new Conditional(() => { return _curAmmo <= 0; });
+                    BehaviorAction doReload = new BehaviorAction(Reload);
+                BehaviorNode reload = new Sequence(needToReload, doReload);
             BehaviorNode subTree_Reload = new DecoratorInverter(reload);
 
-            // 교전 개시
-            Conditional isEnemyCloseEnough = new Conditional(() => { return _distToEnemy < _attackRange; });
-            Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return _curAmmo > 0; });
-            BehaviorNode cannotUseNormalSkill = new DecoratorInverter(canUseNormalSkill);
-            BehaviorAction attack = new BehaviorAction(Attack);
-            BehaviorNode subTree_basicAttack = new Sequence(isEnemyCloseEnough, isHaveEnoughBulletInMagazine, cannotUseNormalSkill, attack);
-            StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, subTree_Move, subTree_Reload, subTree_basicAttack);
+            // 기본공격 서브트리
+                    Conditional isEnemyCloseEnough = new Conditional(() => { return _distToEnemy < _attackRange; });
+                    Conditional isHaveEnoughBulletInMagazine = new Conditional(() => { return _curAmmo > 0; });
+                    BehaviorNode cannotUseNormalSkill = new DecoratorInverter(canUseNormalSkill);
+                // 견착
+                            Conditional isNotSouldering = new Conditional(() => { return !_isShouldering; });
+                            BehaviorAction shoulderWeapon = new BehaviorAction(ShoulderWeapon);
+                        BehaviorNode shoulderIfNotShouldering = new Sequence(isNotSouldering, shoulderWeapon);
+
+                        BehaviorAction attack = new BehaviorAction(Attack);
+                    BehaviorNode soulderAndAttack = new StatefulSequence(new DecoratorMute(shoulderIfNotShouldering), attack);
+                BehaviorNode soulderAndAttackIfCan = new Sequence(isEnemyCloseEnough, isHaveEnoughBulletInMagazine, cannotUseNormalSkill, soulderAndAttack);
+            // 견착 해제
+                    Conditional isShouldering = new Conditional(() => { return _isShouldering; });
+                    BehaviorAction unshoulderWeapon = new BehaviorAction(UnshoulderWeapon);
+                BehaviorNode unshoulderIfShouldering = new Sequence(isShouldering, unshoulderWeapon);
+            BehaviorNode subtree_BasicAttack = new StatefulSequence(new DecoratorMute(soulderAndAttackIfCan), unshoulderIfShouldering);
+
+            StatefulSequence combat = new StatefulSequence(subTree_NormalSkill, subTree_Move, subTree_Reload, subtree_BasicAttack);
 
             // EX 스킬을 제외한 나머지
             BehaviorNode baseCharacterAI = new StatefulSequence(waitUntilEnemySpawn, moveToNextWave, combat);
@@ -465,17 +484,17 @@ namespace Logic
         {
             if (_currentTarget == null || !_currentTarget.isAlive)
             {
-                _curActionFrame = 0;
+                _attackFrame = 0;
                 return BehaviorResult.Success;
             }
-            if (_distToEnemy > _attackRange || _curAmmo <= 0)
+            if (_distToEnemy > _attackRange || _curAmmo <= 0 || !_isShouldering)
             {
-                _curActionFrame = 0;
+                _attackFrame = 0;
                 return BehaviorResult.Failure;
             }
 
-            _curActionFrame++;
-            if (_curActionFrame >= AttackDurationFrame)
+            _attackFrame++;
+            if (_attackFrame >= AttackDurationFrame)
             {
                 LogicDebug.Log("기본 공격 투사체 생성");
                 BulletLogic bulletComponent = new BulletLogic();
@@ -495,7 +514,7 @@ namespace Logic
 
                 // currentTarget.TakeDamage(AttackType, attackPower);
                 _curAmmo -= 1;
-                _curActionFrame = 0;
+                _attackFrame = 0;
             }
             return BehaviorResult.Running;
         }
@@ -510,6 +529,53 @@ namespace Logic
                 IsDoingSomeAction = false;
                 _curAmmo = 15;
                 OnReload();
+                return BehaviorResult.Success;
+            }
+            return BehaviorResult.Running;
+        }
+
+        BehaviorResult ShoulderWeapon()
+        {
+            // 행동의 첫 프레임
+            if(_curActionFrame == 0)
+            {
+                LogicDebug.Log("견착 수행");
+                if(OnShoulderWeapon != null)
+                {
+                    OnShoulderWeapon();
+                }
+            }
+            _curActionFrame++;
+            IsDoingSomeAction = true;
+            if(_curActionFrame >= ShoulderDurationFrame)
+            {
+                _curActionFrame = 0;
+                IsDoingSomeAction = false;
+                _isShouldering = true;
+                return BehaviorResult.Success;
+            }
+            return BehaviorResult.Running;
+        }
+
+        BehaviorResult UnshoulderWeapon()
+        {
+            // 행동의 첫 프레임
+            if (_curActionFrame == 0)
+            {
+                LogicDebug.Log("견착 해제");
+                _attackFrame = 0;
+                if (OnUnshoulderWeapon != null)
+                {
+                    OnUnshoulderWeapon();
+                }
+            }
+            _curActionFrame++;
+            IsDoingSomeAction = true;
+            if (_curActionFrame >= UnshoulderDurationFrame)
+            {
+                _curActionFrame = 0;
+                IsDoingSomeAction = false;
+                _isShouldering = false;
                 return BehaviorResult.Success;
             }
             return BehaviorResult.Running;
