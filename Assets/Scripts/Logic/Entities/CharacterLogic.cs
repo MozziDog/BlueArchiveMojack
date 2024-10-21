@@ -586,6 +586,11 @@ namespace Logic
             // Action의 첫 프레임
             if (_exSkillFrame == 0)
             {
+                // 다른 액션들 초기화
+                _curActionFrame = 0;
+                _attackFrame = 0;
+                _isShouldering = false;
+
                 switch (exSkill.SkillRange.ConditionType)
                 {
                     case SkillTargetType.Enemy:
