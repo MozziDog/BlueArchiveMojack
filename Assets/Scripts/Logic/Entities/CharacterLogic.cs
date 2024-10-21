@@ -425,12 +425,16 @@ namespace Logic
 
         BehaviorResult WaitSkillDone()
         {
-            if (_battleLogic.GetIfSomeAllyDoingAction())
+            // EX 스킬 사용 후 BT가 처음부터 평가되었을 때 교전중이던 적이 있었다면 즉시 Success
+            if(_currentTarget != null || !_battleLogic.GetIfSomeAllyDoingAction())
+            {
+                return BehaviorResult.Success;
+            }
+            else
             {
                 LogicDebug.Log("스킬 종료 대기중");
                 return BehaviorResult.Running;
             }
-            else return BehaviorResult.Success;
         }
 
         BehaviorResult MoveToNextWave()
