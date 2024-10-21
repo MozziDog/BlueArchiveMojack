@@ -734,11 +734,11 @@ namespace Logic
         {
             // TODO: 후퇴 연출 필요
             isAlive = false;
-            _battleLogic.RemoveDeadCharacter(this);
             if(OnDie != null)
             {
                 OnDie();
             }
+            _battleLogic.RemoveDeadCharacter(this);
         }
 
         public void TakeHeal(int heal)
@@ -748,6 +748,11 @@ namespace Logic
         }
 
         #region 디버깅용
+        public void SetBattleLogicReference(BattleLogic battle)
+        {
+            _battleLogic = battle;
+        }
+
         public void SetHP(int newHP)
         {
             _currentHP = newHP;

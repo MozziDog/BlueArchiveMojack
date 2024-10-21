@@ -76,6 +76,7 @@ namespace Logic
             // TODO: battleData에 기록된 적 웨이브 스폰하는 것으로 대체하기
             for(int i=0; i<EnemiesLogic.Count; i++)
             {
+                EnemiesLogic[i].SetBattleLogicReference(this);
                 if(OnEnemySpawn != null)
                 {
                     OnEnemySpawn(EnemiesLogic[i]);
