@@ -36,7 +36,7 @@ MonoBehaviour:
   BuffExtendRate: 0
   CrowdControlExtendRate: 0
   CrowdControlResistRate: 0
-  AmmoCount: 0
+  AmmoCount: 15
   NormalAttackSpeed: 0
   NormalAttackRange: 9
   InitialRangeRate: 8800

@@ -718,7 +718,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1568502161}
         m_TargetAssemblyTypeName: BattleSceneManager, Assembly-CSharp
-        m_MethodName: TryUseSkillCard
+        m_MethodName: OnClickSkillCard
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -910,7 +910,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 713290819}
   m_LocalRotation: {x: -0.32212284, y: 0.40719357, z: -0.15609948, w: -0.8402757}
-  m_LocalPosition: {x: 8.753879, y: 8.172177, z: 1.2430394}
+  m_LocalPosition: {x: 8.754169, y: 8.172177, z: 1.2434083}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1008,6 +1008,10 @@ PrefabInstance:
       propertyPath: CharacterLogic.Name
       value: Enemy 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2126815407644387395, guid: 90f25b77c0b56784c986d0228507137f, type: 3}
+      propertyPath: _damageNumberPrefab
+      value: 
+      objectReference: {fileID: 3122652536334177565, guid: 95a74633689866e4d8088eda5343ce2d, type: 3}
     - target: {fileID: 2126815407644387395, guid: 90f25b77c0b56784c986d0228507137f, type: 3}
       propertyPath: CharacterLogic._maxHP
       value: 30000
@@ -2338,7 +2342,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1627516183}
   m_LocalRotation: {x: -0.32212284, y: 0.40719357, z: -0.15609948, w: -0.8402757}
-  m_LocalPosition: {x: 8.753879, y: 8.172177, z: 1.2430394}
+  m_LocalPosition: {x: 8.754169, y: 8.172177, z: 1.2434083}
   m_LocalScale: {x: 1.0000004, y: 1, z: 1.0000002}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2365,6 +2369,10 @@ PrefabInstance:
       propertyPath: CharacterLogic.Name
       value: Enemy 2
       objectReference: {fileID: 0}
+    - target: {fileID: 2126815407644387395, guid: 90f25b77c0b56784c986d0228507137f, type: 3}
+      propertyPath: _damageNumberPrefab
+      value: 
+      objectReference: {fileID: 3122652536334177565, guid: 95a74633689866e4d8088eda5343ce2d, type: 3}
     - target: {fileID: 2126815407644387395, guid: 90f25b77c0b56784c986d0228507137f, type: 3}
       propertyPath: CharacterLogic._maxHP
       value: 30000
@@ -2538,7 +2546,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1568502161}
         m_TargetAssemblyTypeName: BattleSceneManager, Assembly-CSharp
-        m_MethodName: TryUseSkillCard
+        m_MethodName: OnClickSkillCard
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3142,7 +3150,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1568502161}
         m_TargetAssemblyTypeName: BattleSceneManager, Assembly-CSharp
-        m_MethodName: TryUseSkillCard
+        m_MethodName: OnClickSkillCard
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

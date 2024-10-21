@@ -181,4 +181,9 @@ public class BattleSceneManager : MonoBehaviour
     {
         return new Vector3(logicPosition.x, 0, logicPosition.y);
     }
+
+    public void OnClickSkillCard(int index)
+    {
+        BattleLogic.TryUseSkillCard(index);
+    }
 }

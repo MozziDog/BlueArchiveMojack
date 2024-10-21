@@ -192,6 +192,7 @@ namespace Logic
                 return;
             }
 
+            ExCostCount -= character.ExSkillCost;
             character.TriggerExSkill();
 
             // 스킬 카드를 덱의 맨 밑으로 넣고 한 장 드로우
